@@ -1,0 +1,301 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* VARIABLES */
+:root {
+  --primary: #4062dc;
+  --primary-dark: #2f4fd1;
+  --dark: #1e1e2f;
+  --white: #ffffff;
+  --text: #333;
+  --bg: linear-gradient(135deg, #4062dc, #6c8cff);
+
+  --radius: 16px;
+}
+
+
+body {
+  font-family: "Funnel Sans", sans-serif;
+  min-height: 100vh;
+  background:whitesmoke;
+  color:black;
+}
+
+/* GLASS CARD */
+.greet,
+.student-dashboard,
+.Admin-dashboard {
+  
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 30px;
+  color:black;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.form-group input {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color:black;
+}
+
+.form-group input::placeholder {
+  color:black;
+}
+
+button {
+  background: linear-gradient(135deg, #6c8cff, #4062dc);
+  border-radius: 12px;
+  font-weight: bold;
+}
+/* ================= HEADER ================= */
+.Appbar {
+  background: white;
+  padding: 10px 20px;
+}
+
+.Appbar-content {
+  align-items: center;
+  gap: 15px;
+  margin-left: 30px;
+}
+
+.Appbar-content h1{
+margin-top:30px ;
+}
+
+/* LOGO */
+.logo {
+  height: auto;
+  width: 200px;
+  margin-left: 50px;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px;
+  width: 240px;
+  height: 100vh;
+  background: var(--dark);
+  padding-top: 70px;
+  transition: 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar.active {
+  left: 0;
+}
+
+/* SIDEBAR LINKS */
+.sidebar ul {
+  list-style: none;
+  padding-left: 20px;
+}
+
+.sidebar ul li {
+  margin: 20px 0;
+}
+
+.sidebar ul li a {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  transition: 0.2s;
+}
+
+.sidebar ul li a:hover {
+  color: #6c8cff;
+  padding-left: 5px;
+}
+
+/* ================= TOGGLE BUTTON ================= */
+.menu-toggle {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  font-size: 22px;
+  background: var(--dark);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1100;
+}
+
+/* ================= OVERLAY ================= */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 900;
+}
+
+.overlay.active {
+  display: block;
+}
+
+/* ================= CENTER ================= */
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  margin-top: 30px;
+}
+
+/* ================= CARDS ================= */
+.greet,
+.student-dashboard,
+.Admin-dashboard {
+  background: white;
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+}
+
+/* TITLE */
+.greet h1,
+.student-dashboard h2,
+.Admin-dashboard h2 {
+  margin-bottom: 10px;
+}
+
+/* SUBTEXT */
+.greet h6 {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* ================= BUTTONS ================= */
+button,
+.greet a {
+  display: inline-block;
+  padding: 12px 18px;
+  margin: 10px;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover,
+.greet a:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* SPECIAL BUTTONS */
+.log {
+  position: fixed;
+  top: 70px;
+  right: 15px;
+  background: #8b0000;
+}
+
+.down-btn {
+  background: #032962ea;
+}
+
+/* ================= FORM ================= */
+.form-box {
+  margin-top: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.form-group input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* ================= PAGE BUTTONS ================= */
+.page {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+/* ================= TABLE ================= */
+.list {
+  padding: 20px;
+  margin-top: 40px;
+}
+
+.list h2 {
+  margin-bottom: 20px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+}
+
+th {
+  background: #eee;
+}
+
+/* ================= FOOTER ================= */
+.sign {
+  text-align: center;
+  margin-top: 40px;
+  font-size: larger;
+  font-weight: bolder;
+  opacity: 0.2;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+  .center {
+    padding: 40px 15px;
+  }
+
+  .greet,
+  .student-dashboard,
+  .Admin-dashboard {
+    padding: 20px;
+  }
+}
+
+/* PREVENT SCROLL */
+html, body {
+  overflow-x: hidden;
+}
