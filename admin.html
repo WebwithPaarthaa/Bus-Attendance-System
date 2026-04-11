@@ -15,7 +15,7 @@
     <div class="Appbar">
         <div class="Appbar-content">
              <img src="rit-logo.png" class="logo">
-               <h1>RIT BUS-Attendance System</h1>
+               <h1>RIT BUS-Attendance </h1>
        
    <!-- TOGGLE BUTTON -->
 <div class="menu-toggle" onclick="toggleMenu()">☰</div>
@@ -26,6 +26,7 @@
     <li><a href="index.html">🏠 Home</a></li>
     <li><a href="student.html">🎓 Student</a></li>
     <li><a href="admin.html">🛠 Admin</a></li>
+    <li><a href="manager.html">🚍Bus-Manager</a></li>
   </ul>
 </nav>
 
@@ -39,12 +40,13 @@
     </div>
 
 
+<h3 id="liveDate" class="liveDate"></h3>
 
 <div class="center">
 <div class="Admin-dashboard">
 
         <h2>Admin-dashboard </h2>
-        <table>
+        
             <form id="adminForm" class="form-box">
   <div class="form-group">
     <label>Login-id:</label>
@@ -59,11 +61,61 @@
   
 <div class="form-group">
   <label>Select Bus:</label>
-  <select id="adminBus">
-    <option value="bus1">Bus 1</option>
-    <option value="bus2">Bus 2</option>
-    <option value="bus3">Bus 3</option>
+ <select id="bus">
+    <option value="">None</option>
+    <option value="bus1">	R-01	Ennore</option>
+    <option value="bus2">	R-01A	Tondiarpet</option>
+    <option value="bus3">	R-01B	Kasimedu</option>
+    <option value="bus4"> R-02	Triplicane</option>
+    <option value="bus5"> R-03	Choolai</option>
+    <option value="bus6"> R-03A	Collector Nagar</option>
+    <option value="bus7">	R-03B	Water Tank</option>
+    <option value="bus8">	R-04	East Mogappair</option>
+    <option value="bus9">	R-05	CIT Nagar</option>
+    <option value="bus10">R-05A	Loyola College</option>
+    <option value="bus11">R-06	Chinmayanagar</option>
+    <option value="bus12">R-07	Santhome</option>
+    <option value="bus13">R-08	Kovilambakkam</option>
+    <option value="bus14">R-08A	Adambakkam</option>
+    <option value="bus15">R-09	MKB Nagar</option>
+    <option value="bus16">R-09A	Perambur</option>
+    <option value="bus17">R-10	Thachoor</option>
+    <option value="bus18">R-11	Chengalpattu</option>
+    <option value="bus19">R-11A	Guduvanchery</option>
+    <option value="bus20">R-12	Minjur</option>
+    <option value="bus21">R-13	Vyasarpadi</option>
+    <option value="bus22">R-13A	ICF</option>
+    <option value="bus23">R-14	Thiruvallur</option>
+    <option value="bus24">R-14A	Kakkalur</option>
+    <option value="bus25">R-15	Kancheepuram</option>
+    <option value="bus26">R-15A	Orikkai</option>
+    <option value="bus27">R-16	Neelangkarai</option>
+    <option value="bus28">R-16A	Guindy</option>
+    <option value="bus29">R-16B	Sholinganallur</option>
+    <option value="bus30">R-17	Valluvarkottam</option>
+    <option value="bus31">R-17A	Valasaravakkam</option>
+    <option value="bus32">R-18	Pallikaranai</option>
+    <option value="bus33">R-18A	Sembakkam</option>
+    <option value="bus34">R-18B	Kelambakkam</option>
+    <option value="bus35">R-19	Poombukar</option>
+    <option value="bus36">R-19A	Vinayagapuram</option>
+    <option value="bus37">R-20	Vepampattu</option>
+    <option value="bus38">R-21	Ayyapakkam</option>
+    <option value="bus39">R-22	Thiruthani</option>
+    <option value="bus40">R-22A	SR Gate</option>
+    <option value="bus41">R-23	K4 Police Station</option>
+    <option value="bus42">R-24	Arcot</option>
+    <option value="bus43">R-25	Kallikuppam</option>
+    <option value="bus44">R-25A	Pudur</option>
+    <option value="bus45">R-26	Andarkuppam</option>
+    <option value="bus46">R-27	Avadi</option>
+    <option value="bus47">R-27A	Kollumedu</option>
+    <option value="bus48">R-28	Agaram</option>
+    <option value="bus49">R-29	Velachery</option>
+    <option value="bus50">R-29A	Pammal</option>
+    <option value="bus51">R-29B	Sivanthangal</option>
   </select>
+
 </div>
 
   <button type="button" onclick="adminLogin()">Login</button>

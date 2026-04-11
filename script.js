@@ -1,15 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* FIREBASE */
 var firebaseConfig = {
-apiKey: "AIzaSyDowtDPpdQCM7R5sQoJv9lvHrDO7-WjBiE",
-authDomain: "bus-attendance-3d71d.firebaseapp.com",
-projectId: "bus-attendance-3d71d",
-storageBucket: "bus-attendance-3d71d.appspot.com",
-messagingSenderId: "651539926035",
-appId: "1:651539926035:web:b980197de105ce8359c3e6"
+  apiKey: "AIzaSyDowtDPpdQCM7R5sQoJv9lvHrDO7-WjBiE",
+  authDomain: "bus-attendance-3d71d.firebaseapp.com",
+  projectId: "bus-attendance-3d71d",
+  storageBucket: "bus-attendance-3d71d.appspot.com",
+  messagingSenderId: "651539926035",
+  appId: "1:651539926035:web:b980197de105ce8359c3e6"
 };
 
 var app = initializeApp(firebaseConfig);
@@ -24,295 +24,407 @@ var today = new Date().toISOString().split("T")[0];
 
 /* MENU */
 window.toggleMenu = function () {
-var sidebar = document.getElementById("navLinks");
-var overlay = document.querySelector(".overlay");
+  var sidebar = document.getElementById("navLinks");
+  var overlay = document.querySelector(".overlay");
 
-if (sidebar) sidebar.classList.toggle("active");
-if (overlay) overlay.classList.toggle("active");
+  if (sidebar) sidebar.classList.toggle("active");
+  if (overlay) overlay.classList.toggle("active");
 };
 
-/* LOAD */
+/* ================= SESSION ================= */
+function getSession() {
+  let s = localStorage.getItem("adminSession");
+  return s ? JSON.parse(s) : null;
+}
+
+function isSessionValid(session) {
+  if (!session) return false;
+  return (Date.now() - session.time < 60 * 60 * 1000);
+}
+
+/* ================= PAGE LOAD ================= */
 document.addEventListener("DOMContentLoaded", function () {
-var path = window.location.pathname;
 
+  let path = window.location.pathname;
+  let session = getSession();
 
+  updateDate();
+setInterval(updateDate, 1000);
 
-  // 🔥 SESSION CHECK + 1 HOUR EXPIRY
-  var session = localStorage.getItem("adminSession");
+  if (session && session.bus) {
+    localStorage.setItem("bus", session.bus);
+  }
 
-  if (session) {
-    session = JSON.parse(session);
-
-    var oneHour = 60 * 60 * 1000; // 1 hour
-
-    if (Date.now() - session.time > oneHour) {
+  // ONLY admin dashboard (fix)
+  if (path.includes("dashboard.html")) {
+    if (!isSessionValid(session) || !session || !session.bus) {
       localStorage.removeItem("adminSession");
-      alert("Session expired. Please login again.");
+      alert("Session expired. Login again.");
       window.location.href = "admin.html";
       return;
     }
+    startBusTracking();
   }
 
-  var path = window.location.pathname;
+  if (path.includes("admin.html")) {
+    if (isSessionValid(session)) {
+      window.location.href = "dashboard.html";
+    }
+  }
 
-// preload location
-if (navigator.geolocation) {
-navigator.geolocation.getCurrentPosition(function (pos) {
-cachedStudentLoc = pos;
-});
-}
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      cachedStudentLoc = pos;
+    });
+  }
 
-// load saved student data
-loadStudentData();
-
-// admin protection
-if (path.indexOf("dashboard.html") !== -1) {
-var session = localStorage.getItem("adminSession");
-
-if (!session) {
-  window.location.href = "admin.html";
-  return;
-}
-
-session = JSON.parse(session);
-
-var oneHour = 60 * 60 * 1000;
-
-if (Date.now() - session.time > oneHour) {
-  localStorage.removeItem("adminSession");
-  alert("Session expired. Please login again.");
-  window.location.href = "admin.html";
-  return;
-}
-startBusTracking();
-}
+  loadStudentData();
 });
 
 /* ================= ADMIN LOGIN ================= */
 window.adminLogin = async function () {
-var email = document.getElementById("adminUser").value;
-var password = document.getElementById("adminPass").value;
-var bus = document.getElementById("adminBus").value;
 
-if (!email || !password) {
-alert("Enter email & password!");
-return;
-}
+  var email = document.getElementById("adminUser").value;
+  var password = document.getElementById("adminPass").value;
+  var bus = document.getElementById("bus").value;
 
-if (!bus) {
-alert("Select bus!");
-return;
-}
+  if (!email || !password) return alert("Enter email & password!");
+  if (!bus) return alert("Select bus!");
 
-try {
-await signInWithEmailAndPassword(auth, email, password);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
 
+    localStorage.setItem("adminSession", JSON.stringify({
+      loggedIn: true,
+      bus: bus,
+      time: Date.now()
+    }));
 
-localStorage.setItem("adminSession", JSON.stringify({
-  loggedIn: true,
-  bus: bus,
-  time: Date.now()
-}));
-localStorage.setItem("bus", bus);
+    localStorage.setItem("bus", bus);
 
-window.location.href = "dashboard.html";
+    window.location.href = "dashboard.html";
 
-
-} catch (e) {
-alert(e.message);
-}
+  } catch (e) {
+    alert(e.message);
+  }
 };
 
-/* ================= BUS TRACKING ================= */
+/* ================= BUS TRACK ================= */
 function startBusTracking() {
-var session = JSON.parse(localStorage.getItem("adminSession"));
-var bus = session.bus;
-if (!bus) return;
 
-busWatchId = navigator.geolocation.watchPosition(async function (pos) {
-var lat = pos.coords.latitude;
-var lon = pos.coords.longitude;
+  if (busWatchId !== null) return;
 
+  let session = getSession();
+  if (!session) return;
 
-await setDoc(doc(db, "buses", bus), {
-  lat: lat,
-  lon: lon,
-  active: true,
-  time: new Date().toISOString()
-});
+  let bus = session.bus;
+  if (!bus) return;
 
+  busWatchId = navigator.geolocation.watchPosition(async function (pos) {
 
-});
+    await setDoc(doc(db, "buses", bus), {
+      lat: pos.coords.latitude,
+      lon: pos.coords.longitude,
+      active: true,
+      time: new Date().toISOString()
+    });
+
+  });
 }
 
-/* ================= STUDENT FORM ================= */
+/* ================= STUDENT ================= */
 var form = document.getElementById("studentForm");
 
 if (form) {
-form.addEventListener("submit", async function (e) {
-e.preventDefault();
+  form.addEventListener("submit", async function (e) {
 
+    e.preventDefault();
+    if (isSubmitting) return;
+    isSubmitting = true;
 
-if (isSubmitting) return;
-isSubmitting = true;
+    var name = document.getElementById("name").value;
+    var regno = document.getElementById("regno").value.toUpperCase();
+    var dept = document.getElementById("dept").value;
+    var stop = document.getElementById("stop").value;
+    var bus = document.getElementById("bus").value;
 
-var name = document.getElementById("name").value;
-var regno = document.getElementById("regno").value.toUpperCase();
-var dept = document.getElementById("dept").value;
-var stop = document.getElementById("stop").value;
-var bus = document.getElementById("bus").value;
+    try {
 
-try {
-  var pos = cachedStudentLoc;
+      var pos = cachedStudentLoc || await new Promise((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej)
+      );
 
-  if (!pos) {
-    pos = await new Promise(function (res, rej) {
-      navigator.geolocation.getCurrentPosition(res, rej);
-    });
-  }
+      if (!bus) throw new Error("Select bus!");
 
-  var snap = await getDoc(doc(db, "buses", bus));
+      var snap = await getDoc(doc(db, "buses", bus));
+      if (!snap.exists() || snap.data().active === false) throw new Error("Bus not active");
 
-  if (!snap.exists() || snap.data().active === false) {
-    throw new Error("Bus not active");
-  }
+      var busLoc = snap.data();
 
-  var busLoc = snap.data();
+      var dist = getDistance(
+        pos.coords.latitude,
+        pos.coords.longitude,
+        busLoc.lat,
+        busLoc.lon
+      );
 
-  var dist = getDistance(
-    pos.coords.latitude,
-    pos.coords.longitude,
-    busLoc.lat,
-    busLoc.lon
-  );
+      if (dist > 2) throw new Error("Not near bus");
 
-  if (dist > 2) {
-    throw new Error("Not near bus");
-  }
+      var ref = doc(db, "attendance", bus, today, regno);
+      var existing = await getDoc(ref);
 
-  var ref = doc(db, "attendance", bus, today, regno);
-  var existing = await getDoc(ref);
+      if (existing.exists()) throw new Error("Already marked today");
 
-  if (existing.exists()) {
-    throw new Error("Already marked today");
-  }
-  
-  await setDoc(ref, {
-    name: name,
-    regno: regno,
-    dept: dept,
-    stop: stop,
-    time: new Date().toISOString()
+      await setDoc(ref, {
+        name, regno, dept, stop,
+        time: new Date().toISOString()
+      });
+
+      localStorage.setItem("studentData", JSON.stringify({ name, regno, dept, stop }));
+
+      alert("Attendance marked!");
+      window.location.href = "index.html";
+
+    } catch (e) {
+      alert(e.message);
+    }
+
+    isSubmitting = false;
   });
-
-  // save for autofill
-  localStorage.setItem("studentData", JSON.stringify({
-    name: name,
-    regno: regno,
-    dept: dept,
-    stop: stop
-  }));
-
-  alert("Attendance marked!");
-
-  // 🔥 FORCE REDIRECT
-  window.location.href = "index.html";
-
-} catch (e) {
-  alert(e.message);
-}
-
-isSubmitting = false;
-
-
-});
 }
 
 /* ================= AUTO FILL ================= */
 function loadStudentData() {
-var saved = localStorage.getItem("studentData");
-if (!saved) return;
+  let saved = localStorage.getItem("studentData");
+  if (!saved) return;
 
-var data = JSON.parse(saved);
+  let d = JSON.parse(saved);
 
-if (document.getElementById("name")) {
-document.getElementById("name").value = data.name || "";
-document.getElementById("regno").value = data.regno || "";
-document.getElementById("dept").value = data.dept || "";
-document.getElementById("stop").value = data.stop || "";
+  ["name", "regno", "dept", "stop"].forEach(id => {
+    if (document.getElementById(id)) {
+      document.getElementById(id).value = d[id] || "";
+    }
+  });
 }
-}
 
-/* ================= DASHBOARD ================= */
-var table = document.getElementById("tableBody");
+/* ================= LIVE TABLE ================= */
+let table = document.getElementById("tableBody");
 
 if (table) {
-  var bus = localStorage.getItem("bus");
 
-  onSnapshot(collection(db, "attendance", bus, today), function (snap) {
-    table.innerHTML = "";
-    let docs = [];
-    let index = 1;
+  let bus = localStorage.getItem("bus");
 
-    snap.forEach(docData => {
-      docs.push(docData.data());
-    });
+  onSnapshot(collection(db, "attendance", bus, today), snap => {
 
-    // SORT BY TIME (EARLIEST FIRST)
-    docs.sort((a, b) => new Date(a.time) - new Date(b.time));
+  table.innerHTML = "";
+  let index = 1;
 
-    docs.forEach((s) => {
-      let dateObj = new Date(s.time);
+  if (snap.empty) {
+    table.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align:center; padding:20px;">
+          No Data Available
+        </td>
+      </tr>
+    `;
+    return;
+  }
 
-      let date = dateObj.toLocaleDateString();
-      let time = dateObj.toLocaleTimeString();
+  snap.forEach(docData => {
 
-      let row = `<tr>
-        <td>${index++}</td>
-        <td>${s.name}</td>
-        <td>${s.regno}</td>
-        <td>${s.dept}</td>
-        <td>${s.stop}</td>
-        <td>${date}</td>
-        <td>${time}</td>
-      </tr>`;
+    let s = docData.data();
+    let d = new Date(s.time);
 
-      table.innerHTML += row;
-    });
+    let row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${index++}</td>
+      <td>${s.name}</td>
+      <td>${s.regno}</td>
+      <td>${s.dept}</td>
+      <td>${s.stop}</td>
+      <td>${d.toLocaleDateString("en-IN")}</td>
+      <td>${d.toLocaleTimeString("en-IN")}</td>
+    `;
+
+    table.appendChild(row);
   });
+
+});
 }
 
 /* ================= LOGOUT ================= */
 window.logout = async function () {
-var bus = localStorage.getItem("bus");
 
-if (bus) {
-await setDoc(doc(db, "buses", bus), { active: false }, { merge: true });
-}
+  let bus = localStorage.getItem("bus");
 
-localStorage.removeItem("adminSession");
-window.location.href = "index.html";
+  if (bus) {
+    await setDoc(doc(db, "buses", bus), { active: false }, { merge: true });
+  }
+
+  if (busWatchId !== null) {
+    navigator.geolocation.clearWatch(busWatchId);
+  }
+
+  localStorage.clear();
+  window.location.href = "index.html";
 };
 
 /* ================= DISTANCE ================= */
 function getDistance(lat1, lon1, lat2, lon2) {
-var R = 6371;
-var dLat = (lat2 - lat1) * Math.PI / 180;
-var dLon = (lon2 - lon1) * Math.PI / 180;
 
-var a =
-Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-Math.cos(lat1 * Math.PI / 180) *
-Math.cos(lat2 * Math.PI / 180) *
-Math.sin(dLon / 2) *
-Math.sin(dLon / 2);
+  var R = 6371;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLon = (lon2 - lon1) * Math.PI / 180;
 
-return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-window.downloadData = function () {
-  var table = document.querySelector("table");
-  var rows = table.querySelectorAll("tr");
+/* ================= MAIN DASHBOARD (ALL BUS) ================= */
+
+window.loadMainData = async function (event) {
+
+  let btn = event.target;
+  btn.innerText = "Loading...";
+  btn.disabled = true;
+
+  let selectedBus = document.getElementById("mainBus").value;
+  let table = document.getElementById("mainTable");
+
+  table.innerHTML = "";
+  let index = 1;
+
+  let allData = [];
+
+  // 🔥 CASE 1: ALL BUSES
+  if (selectedBus === "all") {
+
+    for (let i = 1; i <= 51; i++) {
+
+      let bus = "bus" + i;
+      let snap = await getDocs(collection(db, "attendance", bus, today));
+
+      snap.forEach(docData => {
+        let s = docData.data();
+        allData.push({
+          bus,
+          ...s
+        });
+      });
+    }
+
+  } 
+  // 🔥 CASE 2: SINGLE BUS
+  else {
+
+    let snap = await getDocs(collection(db, "attendance", selectedBus, today));
+
+    snap.forEach(docData => {
+      let s = docData.data();
+      allData.push({
+        bus: selectedBus,
+        ...s
+      });
+    });
+  }
+
+  // ✅ SORT BY BUS NUMBER (IMPORTANT)
+  allData.sort((a, b) => {
+    let numA = parseInt(a.bus.replace("bus", ""));
+    let numB = parseInt(b.bus.replace("bus", ""));
+    return numA - numB;
+  });
+
+  // ✅ RENDER TABLE
+  allData.forEach(data => {
+
+    let d = new Date(data.time);
+
+    let row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${index++}</td>
+      <td>${getBusName(data.bus)}</td>
+      <td>${data.name}</td>
+      <td>${data.regno}</td>
+      <td>${data.dept}</td>
+      <td>${data.stop}</td>
+      <td>${d.toLocaleDateString("en-IN")}</td>
+      <td>${d.toLocaleTimeString("en-IN")}</td>
+    `;
+
+    table.appendChild(row);
+  });
+
+  btn.innerText = "Load Data";
+  btn.disabled = false;
+};
+
+/* ================= ALL BUS PDF ================= */
+window.downloadMainPDF = function () {
+
+  const { jsPDF } = window.jspdf;
+  let doc = new jsPDF();
+
+  // ✅ DEFINE FIRST
+  let selectedBus = document.getElementById("mainBus").value;
+
+  let table = document.getElementById("mainTable");
+  let rows = table.querySelectorAll("tr");
+
+  let body = [];
+
+  rows.forEach(row => {
+    let cols = row.querySelectorAll("td");
+    let rowData = [];
+
+    cols.forEach(col => {
+      rowData.push(col.innerText);
+    });
+
+    if (rowData.length) body.push(rowData);
+  });
+
+  // ✅ USE AFTER DECLARE
+  let title = selectedBus === "all"
+    ? "ALL BUS Attendance Report"
+    : `${getBusName(selectedBus)} Attendance Report`;
+
+  doc.text(`${title} - ${today}`, 14, 10);
+
+  doc.autoTable({
+    head: [[
+      "S.no", "Bus", "Name", "Reg No", "Dept", "Stop", "Date", "Time"
+    ]],
+    body: body,
+    startY: 20
+  });
+
+  // ✅ FILE NAME
+  let fileName;
+
+  if (selectedBus === "all") {
+    fileName = `ALL_BUSES_attendance_${today}.pdf`;
+  } else {
+    let busName = getBusName(selectedBus)
+      .replace(/\s+/g, "_")
+      .replace(/[^\w]/g, "");
+
+    fileName = `${busName}_attendance_${today}.pdf`;
+  }
+
+  doc.save(fileName);
+};
+/* ================= ALL BUS CSV ================= */
+window.downloadMainCSV = function () {
+
+  let table = document.getElementById("mainTable");
+  let rows = table.querySelectorAll("tr");
 
   let csv = [];
 
@@ -332,45 +444,192 @@ window.downloadData = function () {
 
   let a = document.createElement("a");
   a.href = url;
-  a.download = "attendance.csv";
+  a.download = `ALL_BUS_attendance_${today}.csv`;
   a.click();
 };
 
-window.downloadPDF = function () {
+/* ================= SECURITY ================= */
+if (window.location.pathname.includes("manager")) {
+  let email = prompt("Enter Manager Email:");
+
+  if (email !== "parthak200701@gmail.com") {
+    alert("Access denied");
+    window.location.href = "index.html";
+  }
+}
+
+function getBusName(bus) {
+  const map = {
+        bus1:"	R-01	Ennore",
+    bus2:"	R-01A	Tondiarpet",
+    bus3:"	R-01B	Kasimedu",
+    bus4:" R-02	Triplicane",
+    bus5:" R-03	Choolai",
+    bus6:" R-03A	Collector Nagar",
+    bus7:"	R-03B	Water Tank",
+    bus8:"	R-04	East Mogappair",
+    bus9:"	R-05	CIT Nagar",
+    bus10:"R-05A	Loyola College",
+    bus11:"R-06	Chinmayanagar",
+    bus12:"R-07	Santhome",
+    bus13:"R-08	Kovilambakkam",
+    bus14:"R-08A	Adambakkam",
+    bus15:"R-09	MKB Nagar",
+    bus16:"R-09A	Perambur",
+    bus17:"R-10	Thachoor",
+    bus18:"R-11	Chengalpattu",
+    bus19:"R-11A	Guduvanchery",
+    bus20:"R-12	Minjur",
+    bus21:"R-13	Vyasarpadi",
+    bus22:"R-13A	ICF",
+    bus23:"R-14	Thiruvallur",
+    bus24:"R-14A	Kakkalur",
+    bus25:"R-15	Kancheepuram",
+    bus26:"R-15A	Orikkai",
+    bus27:"R-16	Neelangkarai",
+    bus28:"R-16A	Guindy",
+    bus29:"R-16B	Sholinganallur",
+    bus30:"R-17	Valluvarkottam",
+    bus31:"R-17A	Valasaravakkam",
+    bus32:"R-18	Pallikaranai",
+    bus33:"R-18A	Sembakkam",
+    bus34:"R-18B	Kelambakkam",
+    bus35:"R-19	Poombukar",
+    bus36:"R-19A	Vinayagapuram",
+    bus37:"R-20	Vepampattu",
+    bus38:"R-21	Ayyapakkam",
+    bus39:"R-22	Thiruthani",
+    bus40:"R-22A	SR Gate",
+    bus41:"R-23	K4 Police Station",
+    bus42:"R-24	Arcot",
+    bus43:"R-25	Kallikuppam",
+    bus44:"R-25A	Pudur",
+    bus45:"R-26	Andarkuppam",
+    bus46:"R-27	Avadi",
+    bus47:"R-27A	Kollumedu",
+    bus48:"R-28	Agaram",
+    bus49:"R-29	Velachery",
+    bus50:"R-29A	Pammal",
+    bus51:"R-29B	Sivanthangal"
+  
+  };
+
+  return map[bus] || bus;
+}
+window.loadBusData = async function (event) {
+
+  let bus = document.getElementById("managerBus").value;
+  let table = document.getElementById("managerTable");
+
+  if (!bus) {
+    alert("Select a bus!");
+    return;
+  }
+
+  table.innerHTML = "";
+  let index = 1;
+
+  let snap = await getDocs(collection(db, "attendance", bus, today));
+
+  snap.forEach(docData => {
+
+    let s = docData.data();
+    let d = new Date(s.time);
+
+    let row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${index++}</td>
+      <td>${s.name}</td>
+      <td>${s.regno}</td>
+      <td>${s.dept}</td>
+      <td>${s.stop}</td>
+      <td>${d.toLocaleDateString("en-IN")}</td>
+      <td>${d.toLocaleTimeString("en-IN")}</td>
+    `;
+
+    table.appendChild(row);
+
+   
+  });
+
+   if (table.innerHTML === "") {
+  table.innerHTML = `
+    <tr>
+      <td colspan="7" style="text-align:center; padding:20px;">
+        No Data Available
+      </td>
+    </tr>
+  `;
+}
+
+};
+
+window.downloadManagerPDF = function () {
+
   const { jsPDF } = window.jspdf;
   let doc = new jsPDF();
 
-// get current bus
-let bus = localStorage.getItem("bus") || "Unknown Bus";
+  let bus = document.getElementById("managerBus").value;
 
-// optional: convert to nice name
-let busMap = {
-  bus1: "Bus 1",
-  bus2: "Bus 2",
-  bus3: "Bus 3"
-};
+  if (!bus) {
+    alert("Select a bus!");
+    return;
+  }
 
-let busName = busMap[bus] || bus;
+  let table = document.getElementById("managerTable");
+  let rows = table.querySelectorAll("tr");
 
-// set title
-doc.text(`${busName} Attendance Report - ${today}`, 14, 10);
+  let body = [];
 
+  rows.forEach(row => {
+    let cols = row.querySelectorAll("td");
+    let rowData = [];
+
+    cols.forEach(col => {
+      rowData.push(col.innerText);
+    });
+
+    if (rowData.length) body.push(rowData);
+  });
+
+  let busName = getBusName(bus);
+
+  // 🔥 TITLE
+  doc.text(`${busName} Attendance Report - ${today}`, 14, 10);
+
+  // 🔥 TABLE
   doc.autoTable({
-    html: "table",
+    head: [[
+      "S.no", "Name", "Reg No", "Dept", "Stop", "Date", "Time"
+    ]],
+    body: body,
     startY: 20
   });
 
-  doc.save("attendance.pdf");
+  // 🔥 FILE NAME (clean)
+  let fileName = busName
+    .replace(/\s+/g, "_")
+    .replace(/[^\w]/g, "");
+
+  doc.save(`${fileName}_attendance_${today}.pdf`);
 };
 
-window.printTable = function () {
-  var content = document.querySelector(".table-container").innerHTML;
-  var win = window.open("", "", "width=900,height=650");
+function updateDate() {
 
-  win.document.write("<html><head><title>Print</title></head><body>");
-  win.document.write(content);
-  win.document.write("</body></html>");
+  let el = document.getElementById("liveDate");
+  if (!el) return;
 
-  win.document.close();
-  win.print();
-};
+  let now = new Date();
+
+  let date = now.toLocaleDateString("en-IN", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+
+  let time = now.toLocaleTimeString("en-IN");
+
+  el.innerText = `${date} | ${time}`;
+}
