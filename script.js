@@ -371,54 +371,42 @@ window.downloadMainPDF = function () {
   const { jsPDF } = window.jspdf;
   let doc = new jsPDF();
 
-  // ✅ DEFINE FIRST
   let selectedBus = document.getElementById("mainBus").value;
-
   let table = document.getElementById("mainTable");
   let rows = table.querySelectorAll("tr");
 
   let body = [];
+  let lastBus = "";
 
   rows.forEach(row => {
     let cols = row.querySelectorAll("td");
-    let rowData = [];
 
-    cols.forEach(col => {
-      rowData.push(col.innerText);
-    });
+    if (cols.length) {
+      let currentBus = cols[1].innerText;
 
-    if (rowData.length) body.push(rowData);
+      // 🔥 ADD BUS TITLE ROW
+      if (currentBus !== lastBus) {
+        body.push([
+          `--- ${currentBus} ---`, "", "", "", "", "", "", ""
+        ]);
+        lastBus = currentBus;
+      }
+
+      let rowData = [];
+      cols.forEach(col => rowData.push(col.innerText));
+      body.push(rowData);
+    }
   });
 
-  // ✅ USE AFTER DECLARE
-  let title = selectedBus === "all"
-    ? "ALL BUS Attendance Report"
-    : `${getBusName(selectedBus)} Attendance Report`;
-
-  doc.text(`${title} - ${today}`, 14, 10);
+  doc.text(`Attendance Report - ${today}`, 14, 10);
 
   doc.autoTable({
-    head: [[
-      "S.no", "Bus", "Name", "Reg No", "Dept", "Stop", "Date", "Time"
-    ]],
+    head: [["S.no","Bus","Name","Reg No","Dept","Stop","Date","Time"]],
     body: body,
     startY: 20
   });
 
-  // ✅ FILE NAME
-  let fileName;
-
-  if (selectedBus === "all") {
-    fileName = `ALL_BUSES_attendance_${today}.pdf`;
-  } else {
-    let busName = getBusName(selectedBus)
-      .replace(/\s+/g, "_")
-      .replace(/[^\w]/g, "");
-
-    fileName = `${busName}_attendance_${today}.pdf`;
-  }
-
-  doc.save(fileName);
+  doc.save(`ALL_BUSES_${today}.pdf`);
 };
 /* ================= ALL BUS CSV ================= */
 window.downloadMainCSV = function () {
@@ -633,3 +621,109 @@ function updateDate() {
 
   el.innerText = `${date} | ${time}`;
 }
+
+window.downloadData = function () {
+
+  let table = document.getElementById("tableBody");
+  let rows = table.querySelectorAll("tr");
+
+  let csv = [];
+
+  // HEADER
+  csv.push('"S.no","Name","Reg No","Dept","Stop","Date","Time"');
+
+  rows.forEach(row => {
+    let cols = row.querySelectorAll("td");
+    let rowData = [];
+
+    cols.forEach(col => {
+      rowData.push('"' + col.innerText + '"');
+    });
+
+    if (rowData.length) csv.push(rowData.join(","));
+  });
+
+  let blob = new Blob([csv.join("\n")], { type: "text/csv" });
+  let url = window.URL.createObjectURL(blob);
+
+  let a = document.createElement("a");
+  a.href = url;
+
+  let bus = getBusName(localStorage.getItem("bus") || "bus");
+  let date = new Date().toISOString().split("T")[0];
+
+  a.download = `${bus.replace(/\s+/g,"_")}_attendance_${date}.csv`;
+  a.click();
+};
+
+window.downloadPDF = function () {
+
+  const { jsPDF } = window.jspdf;
+  let doc = new jsPDF();
+
+  let table = document.getElementById("tableBody");
+  let rows = table.querySelectorAll("tr");
+
+  let body = [];
+
+  rows.forEach(row => {
+    let cols = row.querySelectorAll("td");
+    let rowData = [];
+
+    cols.forEach(col => {
+      rowData.push(col.innerText);
+    });
+
+    if (rowData.length) body.push(rowData);
+  });
+
+  let bus = getBusName(localStorage.getItem("bus") || "bus");
+  let date = new Date().toISOString().split("T")[0];
+
+  doc.text(`${bus} Attendance Report - ${date}`, 14, 10);
+
+  doc.autoTable({
+    head: [["S.no","Name","Reg No","Dept","Stop","Date","Time"]],
+    body: body,
+    startY: 20
+  });
+
+  doc.save(`${bus.replace(/\s+/g,"_")}_attendance_${date}.pdf`);
+};
+
+window.printTable = function () {
+
+  let table = document.querySelector(".table-container").innerHTML;
+
+  let bus = getBusName(localStorage.getItem("bus") || "bus");
+  let date = new Date().toLocaleDateString("en-IN");
+
+  let newWin = window.open("", "", "width=900,height=700");
+
+  newWin.document.write(`
+    <html>
+    <head>
+      <title>Print Attendance</title>
+      <style>
+        body { font-family: Arial; padding: 20px; }
+        h2 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 8px; }
+        th { background: #eee; }
+      </style>
+    </head>
+    <body>
+
+      <h2>${bus} Attendance Report</h2>
+      <p style="text-align:center;">${date}</p>
+
+      ${table}
+
+    </body>
+    </html>
+  `);
+
+  newWin.document.close();
+  newWin.print();
+};
+
