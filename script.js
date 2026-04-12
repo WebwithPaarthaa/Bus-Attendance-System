@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /* DASHBOARD PROTECTION */
-  if (path.includes("dashboard.html")) {
+  if (path.includes("/dashboard.html")) {
 
     if (!isSessionValid(session)) {
       localStorage.removeItem("adminSession");
@@ -134,7 +134,7 @@ window.adminLogin = async function () {
 
     }, 30000);
 
-    window.location.href = "dashboard.html";
+    window.location.href = "/dashboard.html";
 
   } catch (e) {
     alert(e.message);
