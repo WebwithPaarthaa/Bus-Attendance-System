@@ -554,12 +554,11 @@ function initDashboard() {
     if (busNameEl) busNameEl.textContent = `Bus Route : ${BUS_LABELS[bus] || bus}`;
 
     // Real-time listener — this bus, today only
-    const q = query(
-      collection(db, "attendance", getTodayDate(), "records"),
-      where("bus",  "==", bus),
-      where("date", "==", getTodayDate()),
-      orderBy("time")
-    );
+const q = query(
+  collection(db, "attendance", getTodayDate(), "records"),
+  where("bus", "==", bus),
+  orderBy("time")
+);
 
     dashboardUnsubscribe = onSnapshot(q, (snapshot) => {
       const tbody = document.getElementById("tableBody");
@@ -723,7 +722,7 @@ window.loadBusData = function () {
   if (managerUnsubscribe) { managerUnsubscribe(); managerUnsubscribe = null; }
 
   const q = query(
-    collection(db, "attendance"),
+    collection(db, "attendance", getTodayDate(), "records"),
     where("bus",  "==", bus),
     where("date", "==", getTodayDate()),
     orderBy("time")
@@ -827,16 +826,14 @@ window.loadMainData = async function (e) {
     let q;
     if (selected === "all") {
       q = query(
-        collection(db, "attendance"),
-        where("date", "==", getTodayDate()),
+        collection(db, "attendance", getTodayDate(), "records"),
         orderBy("bus"),
         orderBy("time")
       );
     } else {
       q = query(
-        collection(db, "attendance"),
+        collection(db, "attendance", getTodayDate(), "records"),
         where("bus",  "==", selected),
-        where("date", "==", getTodayDate()),
         orderBy("time")
       );
     }

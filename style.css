@@ -387,6 +387,7 @@ html, body {
 
 }
 
+
 @media (max-width: 768px) {
   .Admin-dashboard {
     max-width: 100%;
@@ -397,8 +398,8 @@ html, body {
 @media (max-width: 768px) {
 
   .dashboard-card {
-    width: 100%;
-    max-width: 100%;
+    width: fit-content;
+    max-width: fit-content;
     padding: 15px;
   }
 
@@ -408,7 +409,7 @@ html, body {
 
   .dashboard-card select,
   .dashboard-card button {
-    width: 100%;
+    width: fit-content;
     margin-top: 10px;
   }
 
@@ -417,6 +418,31 @@ html, body {
 .table-container {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scroll on mobile */
+}
+
+table {
+  min-width: 700px; /* adjust if needed */
+  border-collapse: collapse;
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    margin-top: 10px;
+  }
+
+  table {
+    min-width: 800px; /* more width = better scroll */
+  }
+}
+
+.table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #4062dc;
+  border-radius: 10px;
 }
 
 @media (max-width: 768px) {
@@ -434,11 +460,14 @@ html, body {
   }
 
   .download-buttons button {
-    width: 100%;
+    width: fit-content;
   }
 
 }
 
 body {
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
 }
+
