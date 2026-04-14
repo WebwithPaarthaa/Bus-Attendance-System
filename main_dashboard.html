@@ -6,11 +6,19 @@
 </head>
 <body>
 
+   <div class="Appbar">
+        <div class="Appbar-content">
+            <img src="rit-logo.png" class="logo">
+ </div>
+        </div>
+
+        <h3 id="liveDate" class="liveDate"></h3>
+
 <div class="center">
   <div class="Admin-dashboard">
 
     <h2>Overall Bus Dashboard</h2>
-
+<div class="mobile-flex">
     <select id="mainBus">
      <option value="all">ALL Buses</option>
     <option value="bus1">	R-01	Ennore</option>
@@ -69,12 +77,15 @@
 
     <button onclick="loadMainData(event)">Load Data</button>
 
+     
+</div>
   </div>
 </div>
 
+<h3 id="managerBusName" style="text-align:center; margin-top:10px;"></h3> 
 <div class="list">
   <h2>Attendance</h2>
-  <div class="table-container">
+  <div class="table-container" id="mainTableContainer"  >
   <table border="1">
     <thead>
       <tr>

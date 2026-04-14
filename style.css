@@ -307,3 +307,138 @@ html, body {
   padding-top: 10px;
   
 }
+
+/* ================= MAIN DASHBOARD MOBILE ================= */
+@media (max-width: 768px) {
+
+  .Admin-dashboard {
+    width: 100%;
+    max-width: 95%;
+    padding: 20px;
+  }
+
+  .Admin-dashboard h2 {
+    font-size: 20px;
+  }
+
+  #mainBus {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+  }
+
+  .Admin-dashboard button {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+}
+@media (max-width: 768px) {
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 800px;
+  }
+
+}
+@media (max-width: 768px) {
+
+  .down-btn {
+    width: fit-content;
+    margin: 10px auto;
+    display: block;
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .center {
+    padding: 30px 10px;
+  }
+
+  .list {
+    padding: 10px;
+  }
+
+}
+
+@media (max-width: 768px) {
+  .mobile-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 700px; /* keeps table scrollable */
+  }
+
+}
+
+@media (max-width: 768px) {
+  .Admin-dashboard {
+    max-width: 100%;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .dashboard-card {
+    width: 100%;
+    max-width: 100%;
+    padding: 15px;
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .dashboard-card select,
+  .dashboard-card button {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  table {
+    min-width: 700px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .download-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .download-buttons button {
+    width: 100%;
+  }
+
+}
+
+body {
+  overflow-x: hidden;
+}
