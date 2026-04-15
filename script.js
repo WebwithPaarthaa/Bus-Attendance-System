@@ -1,7 +1,7 @@
-// ══════════════════════════════════════════════════════════
-//  RIT BUS-ATTENDANCE SYSTEM  —  script.js
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  RIT BUS-ATTENDANCE SYSTEM  \u2014  script.js
 //  Database : Firebase Firestore
-// ══════════════════════════════════════════════════════════
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -14,7 +14,7 @@ import {
   getDoc,
   onSnapshot,
   orderBy,
-  setDoc, 
+  setDoc,
   deleteDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -26,7 +26,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 
-// ── Firebase config ────────────────────────────────────────
+// \u2500\u2500 Firebase config \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 const firebaseConfig = {
   apiKey: "AIzaSyC0x99UpF3d-veVnZdDvTugjhP0Q7FeDus",
   authDomain: "rit-bus-attendance.firebaseapp.com",
@@ -40,7 +40,9 @@ const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
 
-// 📍 ADMIN LOCATION TRACKING
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  \ud83d\udccd ADMIN LOCATION TRACKING
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 function startAdminLocationTracking(userId, bus) {
   if (!navigator.geolocation) {
     alert("Geolocation not supported");
@@ -48,33 +50,31 @@ function startAdminLocationTracking(userId, bus) {
   }
 
   function updateLocation() {
-   navigator.geolocation.getCurrentPosition(
-  async (pos) => {
-    const { latitude, longitude } = pos.coords;
-
-    await setDoc(doc(db, "admin_locations", userId), {
-      bus: bus,
-      lat: latitude,
-      lng: longitude,
-      updatedAt: new Date().toISOString()
-    });
-
-    console.log("📍 Admin location updated:", latitude, longitude);
-  },
-  (error) => {
-    console.error("❌ Location error:", error);
-    alert("❌ Please allow location access for admin!");
-  }
-);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        await setDoc(doc(db, "admin_locations", userId), {
+          bus: bus,
+          lat: latitude,
+          lng: longitude,
+          updatedAt: new Date().toISOString()
+        });
+        console.log("\ud83d\udccd Admin location updated:", latitude, longitude);
+      },
+      (error) => {
+        console.error("\u274c Location error:", error);
+        alert("\u274c Please allow location access for admin!");
+      }
+    );
   }
 
-  updateLocation(); // first time
+  updateLocation();                         // first time immediately
   setInterval(updateLocation, 5 * 60 * 1000); // every 5 min
 }
 
-// ══════════════════════════════════════════════════════════
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 //  BUS LABEL MAP
-// ══════════════════════════════════════════════════════════
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 const BUS_LABELS = {
   bus1:"R-01 Ennore",           bus2:"R-01A Tondiarpet",
   bus3:"R-01B Kasimedu",        bus4:"R-02 Triplicane",
@@ -104,10 +104,310 @@ const BUS_LABELS = {
   bus51:"R-29B Sivanthangal",
 };
 
-// ══════════════════════════════════════════════════════════
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 //  UTILITY HELPERS
-// ══════════════════════════════════════════════════════════
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 
+function getTodayDate() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function getCurrentTime() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+}
+
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI/180) *
+    Math.cos(lat2 * Math.PI/180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+function getDeviceName() {
+  return navigator.userAgent;
+}
+
+function startLiveClock() {
+  const el = document.getElementById("liveDate");
+  if (!el) return;
+  const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const tick = () => {
+    const n = new Date();
+    el.textContent =
+      `${DAYS[n.getDay()]}, ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}` +
+      `  |  ${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}:${String(n.getSeconds()).padStart(2,"0")}`;
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+function populateBusSelects() {
+  ["bus", "managerBus", "mainBus"].forEach((id) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    Object.entries(BUS_LABELS).forEach(([key, label]) => {
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+window.toggleMenu = function () {
+  document.getElementById("navLinks")?.classList.toggle("active");
+  document.querySelector(".overlay")?.classList.toggle("active");
+};
+
+function triggerDownload(filename, mimeType, content) {
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement("a"), { href: url, download: filename });
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  PAGE DETECTION
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+const PAGE = (() => {
+  const p = location.pathname.split("/").pop() || "index.html";
+  if (p === "" || p === "index.html")  return "index";
+  if (p === "student.html")            return "student";
+  if (p === "admin.html")              return "admin";
+  if (p === "dashboard.html")          return "dashboard";
+  if (p === "manager.html")            return "manager";
+  if (p === "main_dashboard.html")     return "main_dashboard";
+  return "unknown";
+})();
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  BOOT
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+document.addEventListener("DOMContentLoaded", () => {
+  startLiveClock();
+  populateBusSelects();
+  switch (PAGE) {
+    case "index":          initIndex();         break;
+    case "student":        initStudent();       break;
+    case "admin":          initAdmin();         break;
+    case "dashboard":      initDashboard();     break;
+    case "manager":        initManager();       break;
+    case "main_dashboard": initMainDashboard(); break;
+  }
+});
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  INDEX PAGE
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function initIndex() {
+  // Static page \u2014 navigation handled by <a> links
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  STUDENT PAGE  \u2014  Mark attendance
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function initStudent() {
+  const form = document.getElementById("studentForm");
+  if (!form) return;
+
+  // \ud83d\udd12 Check device lock (5 hours)
+  const lockTime = localStorage.getItem("attendanceLock");
+  if (lockTime) {
+    const diffHours = (Date.now() - parseInt(lockTime)) / (1000 * 60 * 60);
+    if (diffHours < 5) {
+      alert("\u26d4 You have already marked attendance. Try again after 5 hours.");
+      window.location.href = "index.html";
+      return;
+    } else {
+      localStorage.removeItem("attendanceLock");
+    }
+  }
+
+  // \ud83d\udd04 Auto-fill saved student details
+  const fields = { name: "studentName", regno: "studentReg", dept: "studentDept", bus: "studentBus", stop: "studentStop" };
+  Object.entries(fields).forEach(([inputId, storageKey]) => {
+    const saved = localStorage.getItem(storageKey);
+    const el    = document.getElementById(inputId);
+    if (saved && el) el.value = saved;
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById("markBtn");
+    if (btn) { btn.disabled = true; btn.textContent = "\u23f3 Marking..."; }
+
+    const resetBtn = () => {
+      if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+    };
+
+    const name  = document.getElementById("name").value.trim();
+    const regno = document.getElementById("regno").value.trim();
+    const dept  = document.getElementById("dept").value.trim();
+    const bus   = document.getElementById("bus").value;
+    const stop  = document.getElementById("stop").value.trim();
+
+    if (!name || !regno || !dept || !bus || !stop) {
+      alert("\u26a0\ufe0f Please fill in all fields.");
+      resetBtn();
+      return;
+    }
+
+    const todayDate = getTodayDate();
+
+    try {
+      // Cross-bus duplicate check
+      const dupQuery = query(
+        collection(db, "attendance", todayDate, "records"),
+        where("regno", "==", regno),
+        where("date",  "==", todayDate)
+      );
+      const dupSnap = await getDocs(dupQuery);
+      if (!dupSnap.empty) {
+        alert(`\u26a0\ufe0f Attendance already marked for Register No: ${regno} today.`);
+        resetBtn();
+        return;
+      }
+
+      // Get student geolocation
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const studentLat = pos.coords.latitude;
+            const studentLng = pos.coords.longitude;
+
+            // Fetch admin location for this bus
+            const q    = query(collection(db, "admin_locations"), where("bus", "==", bus));
+            const snap = await getDocs(q);
+
+            if (snap.empty) {
+              alert("\u23f3 Waiting for admin location... Try again in a few seconds.");
+              resetBtn();
+              return;
+            }
+
+            // Pick the most recently updated admin location
+            let admin = null;
+            snap.forEach(docSnap => {
+              const data = docSnap.data();
+              if (!admin || new Date(data.updatedAt) > new Date(admin.updatedAt)) {
+                admin = data;
+              }
+            });
+
+            // Check location freshness (must be within 60 minutes)
+            const diffMinutes = (Date.now() - new Date(admin.updatedAt)) / (1000 * 60);
+            if (diffMinutes > 60) {
+              alert("\u274c Bus location is outdated.");
+              resetBtn();
+              return;
+            }
+
+            // Check proximity (must be within 500 m)
+            const distance = getDistance(studentLat, studentLng, admin.lat, admin.lng);
+            if (distance > 0.5) {
+              alert(`\u274c Too far from bus (${(distance * 1000).toFixed(0)} meters)`);
+              resetBtn();
+              return;
+            }
+
+            // Fetch admin name/device from active_admins
+            const adminDoc = await getDoc(doc(db, "active_admins", bus));
+            let adminName  = "Unknown";
+            let deviceName = "Unknown";
+            if (adminDoc.exists()) {
+              const data = adminDoc.data();
+              adminName  = data.email;
+              deviceName = data.device;
+            }
+
+            // \u2705 Save attendance record
+            await setDoc(doc(db, "attendance", todayDate, "records", regno), {
+              name,
+              regno,
+              dept,
+              bus,
+              busLabel: BUS_LABELS[bus],
+              stop,
+              date:   todayDate,
+              time:   getCurrentTime(),
+              admin:  adminName,
+              device: deviceName
+            });
+
+            alert("\u2705 Attendance marked successfully!");
+
+            // \ud83d\udcbe Persist student details for next visit
+            localStorage.setItem("studentName", name);
+            localStorage.setItem("studentReg",  regno);
+            localStorage.setItem("studentDept", dept);
+            localStorage.setItem("studentBus",  bus);
+            localStorage.setItem("studentStop", stop);
+
+            // \ud83d\udd12 Store lock timestamp
+            localStorage.setItem("attendanceLock", Date.now());
+
+            window.location.href = "index.html";
+
+          } catch (innerErr) {
+            console.error("Attendance save error:", innerErr);
+            alert("\u274c Failed to save attendance.");
+            resetBtn();
+          }
+        },
+        () => {
+          alert("\u274c Location access is required to mark attendance.");
+          resetBtn();
+        }
+      );
+
+    } catch (err) {
+      console.error("Student submit error:", err);
+      alert("\u274c Failed to save attendance.");
+      resetBtn();
+    }
+  });
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  ADMIN PAGE  \u2014  Firebase Auth login
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function initAdmin() {
+  // Redirect if already logged in with a bus selected
+  onAuthStateChanged(auth, (user) => {
+    if (user && sessionStorage.getItem("adminBus")) {
+      window.location.href = "dashboard.html";
+    }
+  });
+
+  // \ud83d\udd04 Auto-fill last login details
+  const savedEmail = localStorage.getItem("lastAdminEmail");
+  const savedBus   = localStorage.getItem("lastAdminBus");
+  if (savedEmail) {
+    const emailInput = document.getElementById("adminUser");
+    if (emailInput) emailInput.value = savedEmail;
+  }
+  if (savedBus) {
+    const busSelect = document.getElementById("bus");
+    if (busSelect) busSelect.value = savedBus;
+  }
+}
+
+// \u2500\u2500 Admin login (called from HTML onclick) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+window.adminLogin = async function () {
+  const email = document.getElementById("adminUser").value.trim();
+  const pass  = document.getElementById("adminPass").value.trim(
 function getTodayDate() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
