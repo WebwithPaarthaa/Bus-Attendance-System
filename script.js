@@ -463,6 +463,8 @@ window.adminLogin = async function () {
   const pass  = document.getElementById("adminPass").value.trim();
   const bus   = document.getElementById("bus").value;
 
+  startAdminLocationTracking(user.uid, bus);
+  
   if (!email || !pass) {
     alert("⚠️ Please enter your email and password.");
     return;
@@ -486,38 +488,19 @@ if (existingAdmin.exists()) {
  const userCredential = await signInWithEmailAndPassword(auth, email, pass);
 const user = userCredential.user;
 
+// ✅ start tracking location (THIS IS THE FIX)
+startAdminLocationTracking(user.uid, bus);
+
+await setDoc(doc(db, "active_admins", bus), {
+  email: user.email,
+  bus: bus,
+  device: getDeviceName(),
+  loginTime: new Date().toISOString()
+});
+
 // ✅ start tracking location
 
-  startAdminLocationTracking(userId, bus) {
-  if (!navigator.geolocation) {
-    alert("Geolocation not supported");
-    return;
-  }
-
-  navigator.geolocation.watchPosition(
-    async (pos) => {
-      const { latitude, longitude } = pos.coords;
-
-      await setDoc(doc(db, "admin_locations", userId), {
-        bus: bus,
-        lat: latitude,
-        lng: longitude,
-        updatedAt: new Date().toISOString()
-      });
-
-      console.log("📍 Live location:", latitude, longitude);
-    },
-    (error) => {
-      console.error("❌ Location error:", error);
-      alert("❌ Please allow location access!");
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 10000
-    }
-  );
-}
+  
 
 await setDoc(doc(db, "admins", email), {
   email: email,
