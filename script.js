@@ -487,7 +487,8 @@ if (existingAdmin.exists()) {
 const user = userCredential.user;
 
 // ✅ start tracking location
-function startAdminLocationTracking(userId, bus) {
+
+  startAdminLocationTracking(userId, bus) {
   if (!navigator.geolocation) {
     alert("Geolocation not supported");
     return;
