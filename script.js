@@ -335,6 +335,7 @@ if (!regPattern.test(regno)) {
 
     const studentLat = pos.coords.latitude;
     const studentLng = pos.coords.longitude;
+    console.log("📍 Student Location:", studentLat, studentLng);
 
     const q = query(
       collection(db, "admin_locations"),
@@ -363,13 +364,15 @@ snap.forEach(docSnap => {
     admin = data;
   }
 });
+console.log("🚌 Admin Location:", admin.lat, admin.lng);
+console.log("⏱ Last Updated:", admin.updatedAt);
 
     // ✅ CHECK LOCATION TIME
     const lastUpdate = new Date(admin.updatedAt);
     const now = new Date();
     const diffMinutes = (now - lastUpdate) / (1000 * 60);
 
-   if (diffMinutes > 5) {
+   if (diffMinutes > 30) {
   alert("❌ Bus location is outdated.");
 
   if (btn) {
@@ -387,7 +390,9 @@ snap.forEach(docSnap => {
       admin.lng
     );
 
-   if (distance > 0.3) {
+    console.log("📏 Distance (km):", distance);
+
+   if (distance > 2) {
   alert(`❌ Too far from bus (${(distance * 1000).toFixed(0)} meters)`);
 
   if (btn) {
