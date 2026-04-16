@@ -41,34 +41,52 @@ const db   = getFirestore(app);
 const auth = getAuth(app);
 
 // 📍 ADMIN LOCATION TRACKING
+// Returns a Promise that resolves once the FIRST GPS fix is saved,
+// then keeps watching in the background for subsequent updates.
 function startAdminLocationTracking(userId, bus) {
-  if (!navigator.geolocation) {
-    alert("Geolocation not supported");
-    return;
-  }
-
-  navigator.geolocation.watchPosition(
-    async (pos) => {
-      const { latitude, longitude } = pos.coords;
-
-      await setDoc(doc(db, "admin_locations", userId), {
-        bus,
-        lat: latitude,
-        lng: longitude,
-        updatedAt: new Date().toISOString()
-      });
-
-      console.log("📍 Live location:", latitude, longitude);
-    },
-    (error) => {
-      console.error("❌ Location error:", error);
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 10000
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return reject(new Error("Geolocation not supported"));
     }
-  );
+
+    let firstFixSaved = false;
+
+    navigator.geolocation.watchPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+
+        try {
+          await setDoc(doc(db, "admin_locations", userId), {
+            bus,
+            lat: latitude,
+            lng: longitude,
+            updatedAt: new Date().toISOString()
+          });
+
+          console.log("📍 Live location saved:", latitude, longitude);
+
+          // Resolve the promise only on the first successful write
+          if (!firstFixSaved) {
+            firstFixSaved = true;
+            resolve();
+          }
+        } catch (err) {
+          console.error("❌ Failed to save location:", err);
+          if (!firstFixSaved) reject(err);
+        }
+      },
+      (error) => {
+        console.error("❌ Location error:", error);
+        if (!firstFixSaved) reject(error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 15000
+      }
+    );
+  });
 }
 
 
@@ -505,15 +523,13 @@ if (existingAdmin.exists() && existingAdmin.data().active) {
   return;
 }
 
-// ✅ start tracking location
-startAdminLocationTracking(user.uid, bus);
-
- await setDoc(doc(db, "active_admins", bus), {
+// ✅ Save admin session records first
+await setDoc(doc(db, "active_admins", bus), {
   email: user.email,
   bus: bus,
   device: getDeviceName(),
   loginTime: new Date().toISOString(),
-  active:true
+  active: true
 });
 
 await setDoc(doc(db, "admins", email), {
@@ -521,9 +537,19 @@ await setDoc(doc(db, "admins", email), {
   bus: bus,
   device: getDeviceName(),
   loginTime: new Date().toISOString(),
-  active:true
+  active: true
 });
 
+// ✅ Get first GPS fix and save to admin_locations BEFORE redirecting
+// (watchPosition keeps running but the page redirect would kill fire-and-forget callbacks)
+if (btn) { btn.textContent = "📍 Getting location…"; }
+try {
+  await startAdminLocationTracking(user.uid, bus);
+} catch (locErr) {
+  // Location failed — warn but still allow login (admin can retry)
+  console.warn("⚠️ Could not get GPS fix on login:", locErr);
+  alert("⚠️ Location access failed. Students may not be able to mark attendance until your location is detected. Make sure location permission is granted.");
+}
 
 sessionStorage.setItem("adminBus", bus);
 // 💾 Save last login
@@ -982,4 +1008,3 @@ window.downloadMainPDF = function () {
   });
   doc.save(`all_buses_${getTodayDate().replace(/\//g,"-")}.pdf`);
 };
-
