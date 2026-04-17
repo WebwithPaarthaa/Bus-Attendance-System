@@ -14,7 +14,7 @@ import {
   getDoc,
   onSnapshot,
   orderBy,
-  setDoc, 
+  setDoc,
   deleteDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -40,9 +40,14 @@ const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
 
-// 📍 ADMIN LOCATION TRACKING
-// Returns a Promise that resolves once the FIRST GPS fix is saved,
-// then keeps watching in the background for subsequent updates.
+// ══════════════════════════════════════════════════════════
+//  📍 ADMIN LOCATION TRACKING
+//  - Starts watchPosition and saves every GPS update to Firestore
+//  - Returns a Promise that resolves after the FIRST fix is saved
+//  - Also returns the watchId so the caller can stop it if needed
+// ══════════════════════════════════════════════════════════
+let locationWatchId = null; // global so we can stop the old watcher before starting a new one
+
 function startAdminLocationTracking(userId, bus) {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -50,9 +55,15 @@ function startAdminLocationTracking(userId, bus) {
       return reject(new Error("Geolocation not supported"));
     }
 
+    // Stop any existing watcher before starting a new one (prevents duplicates)
+    if (locationWatchId !== null) {
+      navigator.geolocation.clearWatch(locationWatchId);
+      locationWatchId = null;
+    }
+
     let firstFixSaved = false;
 
-    navigator.geolocation.watchPosition(
+    locationWatchId = navigator.geolocation.watchPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
 
@@ -66,7 +77,6 @@ function startAdminLocationTracking(userId, bus) {
 
           console.log("📍 Live location saved:", latitude, longitude);
 
-          // Resolve the promise only on the first successful write
           if (!firstFixSaved) {
             firstFixSaved = true;
             resolve();
@@ -88,8 +98,6 @@ function startAdminLocationTracking(userId, bus) {
     );
   });
 }
-
-
 
 
 // ══════════════════════════════════════════════════════════
@@ -220,69 +228,56 @@ function initIndex() {
 
 // ══════════════════════════════════════════════════════════
 //  STUDENT PAGE  —  Mark attendance
-//  Firestore collection: "attendance"
-//  Each document: { name, regno, dept, bus, busLabel, stop, date, time }
 // ══════════════════════════════════════════════════════════
 function initStudent() {
   const form = document.getElementById("studentForm");
-  // 🔒 CHECK DEVICE LOCK (5 hours)
-const lockTime = localStorage.getItem("attendanceLock");
 
-// 🔄 Auto-fill student details
-const savedName  = localStorage.getItem("studentName");
-const savedReg   = localStorage.getItem("studentReg");
-const savedDept  = localStorage.getItem("studentDept");
-const savedBus   = localStorage.getItem("studentBus");
-const savedStop  = localStorage.getItem("studentStop");
+  // 🔒 CHECK DEVICE LOCK (3 hours)
+  const lockTime = localStorage.getItem("attendanceLock");
 
-if (savedName) document.getElementById("name").value = savedName;
-if (savedReg)  document.getElementById("regno").value = savedReg;
-if (savedDept) document.getElementById("dept").value = savedDept;
-if (savedBus)  document.getElementById("bus").value = savedBus;
-if (savedStop) document.getElementById("stop").value = savedStop;
+  // 🔄 Auto-fill student details
+  const savedName  = localStorage.getItem("studentName");
+  const savedReg   = localStorage.getItem("studentReg");
+  const savedDept  = localStorage.getItem("studentDept");
+  const savedBus   = localStorage.getItem("studentBus");
+  const savedStop  = localStorage.getItem("studentStop");
 
-if (lockTime) {
-  const now = Date.now();
-  const diffHours = (now - parseInt(lockTime)) / (1000 * 60 * 60);
+  if (savedName) document.getElementById("name").value  = savedName;
+  if (savedReg)  document.getElementById("regno").value = savedReg;
+  if (savedDept) document.getElementById("dept").value  = savedDept;
+  if (savedBus)  document.getElementById("bus").value   = savedBus;
+  if (savedStop) document.getElementById("stop").value  = savedStop;
 
-  if (diffHours < 3) {
-    alert("⛔ You have already marked attendance. Try again after 3 hours.");
-    window.location.href = "index.html";
-    return;
-  } else {
-    // expired → remove lock
-    localStorage.removeItem("attendanceLock");
+  if (lockTime) {
+    const diffHours = (Date.now() - parseInt(lockTime)) / (1000 * 60 * 60);
+    if (diffHours < 3) {
+      alert("⛔ You have already marked attendance. Try again after 3 hours.");
+      window.location.href = "index.html";
+      return;
+    } else {
+      localStorage.removeItem("attendanceLock");
+    }
   }
-}
 
   if (!form) return;
-
-  
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-const btn = document.getElementById("markBtn");
-
-if (btn) {
-  btn.disabled = true;
-  btn.textContent = "⏳ Marking...";
-}
-
+    const btn = document.getElementById("markBtn");
+    if (btn) { btn.disabled = true; btn.textContent = "⏳ Marking..."; }
 
     function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-
-  const a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI/180) *
-    Math.cos(lat2 * Math.PI/180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-}
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI/180) *
+        Math.cos(lat2 * Math.PI/180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    }
 
     const name  = document.getElementById("name").value.trim();
     const regno = document.getElementById("regno").value.trim();
@@ -290,184 +285,147 @@ if (btn) {
     const bus   = document.getElementById("bus").value;
     const stop  = document.getElementById("stop").value.trim();
 
-    
     const regPattern = /^[a-zA-Z0-9]{10,15}$/;
-
-if (!regPattern.test(regno)) {
-  alert("❌ Invalid Register Number");
-  return;
-}
+    if (!regPattern.test(regno)) {
+      alert("❌ Invalid Register Number");
+      if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+      return;
+    }
 
     if (!name || !regno || !dept || !bus || !stop) {
-  alert("⚠️ Please fill in all fields.");
-
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "Mark Attendance";
-  }
-
-  return;
-}
+      alert("⚠️ Please fill in all fields.");
+      if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+      return;
+    }
 
     const todayDate = getTodayDate();
 
     try {
       // Cross-bus duplicate check
       const dupQuery = query(
-      collection(db, "attendance", todayDate, "records"),
+        collection(db, "attendance", todayDate, "records"),
         where("regno", "==", regno),
         where("date",  "==", todayDate)
       );
       const dupSnap = await getDocs(dupQuery);
       if (!dupSnap.empty) {
-  alert(`⚠️ Attendance already marked for Register No: ${regno} today.`);
+        alert(`⚠️ Attendance already marked for Register No: ${regno} today.`);
+        if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+        return;
+      }
 
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "Mark Attendance";
-  }
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const studentLat = pos.coords.latitude;
+          const studentLng = pos.coords.longitude;
+          console.log("📍 Student Location:", studentLat, studentLng);
 
-  return;
+          // --- FIX: Check admin session expiry using loginTime FIRST ---
+          // This works even if the admin closed their browser/tab
+          const adminDoc = await getDoc(doc(db, "active_admins", bus));
+
+          if (!adminDoc.exists()) {
+            alert("❌ No admin session found for this bus.");
+            if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+            return;
+          }
+
+          const adminData = adminDoc.data();
+          const loginTime = new Date(adminData.loginTime);
+          const diffHours = (new Date() - loginTime) / (1000 * 60 * 60);
+
+          // If 3 hours have passed OR active was already set to false → expire it now
+          if (diffHours >= 3 || !adminData.active) {
+            await setDoc(doc(db, "active_admins", bus), { active: false }, { merge: true });
+            alert("❌ Admin session expired. Bus attendance is closed.");
+            if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+            return;
+          }
+
+          // --- Now check location ---
+          const locQuery = query(
+            collection(db, "admin_locations"),
+            where("bus", "==", bus)
+          );
+          const snap = await getDocs(locQuery);
+
+          if (snap.empty) {
+            alert("⏳ Waiting for admin location... Try again in a few seconds.");
+            if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+            return;
+          }
+
+          let admin = null;
+          snap.forEach(docSnap => {
+            const data = docSnap.data();
+            if (!admin || new Date(data.updatedAt) > new Date(admin.updatedAt)) {
+              admin = data;
+            }
+          });
+
+          console.log("🚌 Admin Location:", admin.lat, admin.lng);
+          console.log("⏱ Last Updated:", admin.updatedAt);
+
+          // Check location freshness
+          const lastUpdate  = new Date(admin.updatedAt);
+          const diffMinutes = (new Date() - lastUpdate) / (1000 * 60);
+
+          if (diffMinutes > 30) {
+            alert("❌ Bus location is outdated. Ask admin to refresh their location.");
+            if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+            return;
+          }
+
+          const distance = getDistance(studentLat, studentLng, admin.lat, admin.lng);
+          console.log("📏 Distance (km):", distance);
+
+          if (distance > 2) {
+            alert(`❌ Too far from bus (${(distance * 1000).toFixed(0)} meters)`);
+            if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+            return;
+          }
+
+          // ✅ SAVE ATTENDANCE
+          await setDoc(doc(db, "attendance", todayDate, "records", regno), {
+            name,
+            regno,
+            dept,
+            bus,
+            busLabel: BUS_LABELS[bus],
+            stop,
+            date: todayDate,
+            time: getCurrentTime(),
+            admin: adminData.email,
+            device: adminData.device
+          });
+
+          alert("✅ Attendance marked successfully!");
+
+          // 💾 Save student details for next time
+          localStorage.setItem("studentName", name);
+          localStorage.setItem("studentReg",  regno);
+          localStorage.setItem("studentDept", dept);
+          localStorage.setItem("studentBus",  bus);
+          localStorage.setItem("studentStop", stop);
+
+          // 🔒 Store lock time
+          localStorage.setItem("attendanceLock", Date.now());
+
+          window.location.href = "index.html";
+        },
+        (error) => {
+          alert("❌ Location access is required to mark attendance.");
+          if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+        }
+      );
+    } catch (err) {
+      console.error("Student submit error:", err);
+      alert("❌ Failed to save attendance.");
+      if (btn) { btn.disabled = false; btn.textContent = "Mark Attendance"; }
+    }
+  });
 }
 
- navigator.geolocation.getCurrentPosition(
-  async (pos) => {
-
-    const studentLat = pos.coords.latitude;
-    const studentLng = pos.coords.longitude;
-    console.log("📍 Student Location:", studentLat, studentLng);
-
-    const q = query(
-      collection(db, "admin_locations"),
-      where("bus", "==", bus)
-    );
-
-    const snap = await getDocs(q);
-
-if (snap.empty) {
-  alert("⏳ Waiting for admin location... Try again in few seconds.");
-
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "Mark Attendance";
-  }
-
-  return;
-}
-
-    let admin = null;
-
-snap.forEach(docSnap => {
-  const data = docSnap.data();
-
-  if (!admin || new Date(data.updatedAt) > new Date(admin.updatedAt)) {
-    admin = data;
-  }
-});
-console.log("🚌 Admin Location:", admin.lat, admin.lng);
-console.log("⏱ Last Updated:", admin.updatedAt);
-
-    // ✅ CHECK LOCATION TIME
-    const lastUpdate = new Date(admin.updatedAt);
-    const now = new Date();
-    const diffMinutes = (now - lastUpdate) / (1000 * 60);
-
-   if (diffMinutes > 30) {
-  alert("❌ Bus location is outdated.");
-
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "Mark Attendance";
-  }
-
-  return;
-}
-
-    const distance = getDistance(
-      studentLat,
-      studentLng,
-      admin.lat,
-      admin.lng
-    );
-
-    console.log("📏 Distance (km):", distance);
-
-   if (distance > 2) {
-  alert(`❌ Too far from bus (${(distance * 1000).toFixed(0)} meters)`);
-
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "Mark Attendance";
-  }
-
-  return;
-}
-
-    // get admin for this bus
-const adminDoc = await getDoc(doc(db, "active_admins", bus));
-
-if (!adminDoc.exists() || !adminDoc.data().active) {
-  alert("❌ Admin session expired.");
-  return;
-}
-
-let adminName = "Unknown";
-let deviceName = "Unknown";
-
-if (adminDoc.exists()) {
-  const data = adminDoc.data();
-  adminName = data.email;
-  deviceName = data.device;
-}
-
-
-
-    // ✅ SAVE ATTENDANCE
-await setDoc(doc(db, "attendance", todayDate, "records", regno), {
-  name,
-  regno,
-  dept,
-  bus,
-  busLabel: BUS_LABELS[bus],
-  stop,
-  date: todayDate,
-  time: getCurrentTime(),
-  admin: adminName,
-  device: deviceName
-});
-
-    alert("✅ Attendance marked successfully!");
-
-    // 💾 Save student details
-localStorage.setItem("studentName", name);
-localStorage.setItem("studentReg", regno);
-localStorage.setItem("studentDept", dept);
-localStorage.setItem("studentBus", bus);
-localStorage.setItem("studentStop", stop);
-    
-// 🔒 store lock time
-localStorage.setItem("attendanceLock", Date.now());
-
-// 🔄 redirect to home
-window.location.href = "index.html";
-
-  },
- (error) => {
-  alert("❌ Location access is required to mark attendance.");
-
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = "Mark Attendance";
-  }
-}
-    );
-      } catch (err) {
-  console.error("Student submit error:", err);
-  alert("❌ Failed to save attendance.");
-}
-    });
-}   
-  
 // ══════════════════════════════════════════════════════════
 //  ADMIN PAGE  —  Firebase Auth login
 // ══════════════════════════════════════════════════════════
@@ -477,20 +435,19 @@ function initAdmin() {
       window.location.href = "dashboard.html";
     }
   });
-}
 
-// 🔄 Auto-fill last login
-const savedEmail = localStorage.getItem("lastAdminEmail");
-const savedBus   = localStorage.getItem("lastAdminBus");
+  // 🔄 Auto-fill last login
+  const savedEmail = localStorage.getItem("lastAdminEmail");
+  const savedBus   = localStorage.getItem("lastAdminBus");
 
-if (savedEmail) {
-  const emailInput = document.getElementById("adminUser");
-  if (emailInput) emailInput.value = savedEmail;
-}
-
-if (savedBus) {
-  const busSelect = document.getElementById("bus");
-  if (busSelect) busSelect.value = savedBus;
+  if (savedEmail) {
+    const emailInput = document.getElementById("adminUser");
+    if (emailInput) emailInput.value = savedEmail;
+  }
+  if (savedBus) {
+    const busSelect = document.getElementById("bus");
+    if (busSelect) busSelect.value = savedBus;
+  }
 }
 
 function getDeviceName() {
@@ -514,55 +471,60 @@ window.adminLogin = async function () {
   const btn = document.querySelector("#adminForm button");
   if (btn) { btn.disabled = true; btn.textContent = "Logging in…"; }
 
-try {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+    const user = userCredential.user;
 
- const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-const user = userCredential.user;
+    // ✅ Check if bus already has an active admin whose session has NOT expired
+    const existingAdmin = await getDoc(doc(db, "active_admins", bus));
+    if (existingAdmin.exists() && existingAdmin.data().active) {
+      const existingLoginTime = new Date(existingAdmin.data().loginTime);
+      const existingDiffHours = (new Date() - existingLoginTime) / (1000 * 60 * 60);
 
-// ✅ Check if bus already has active admin
-const existingAdmin = await getDoc(doc(db, "active_admins", bus));
+      if (existingDiffHours < 3) {
+        // Truly still active
+        alert("❌ This bus already has an active admin session!");
+        await signOut(auth);
+        if (btn) { btn.disabled = false; btn.textContent = "Login"; }
+        return;
+      } else {
+        // Old session expired — auto-clear it so this admin can take over
+        await setDoc(doc(db, "active_admins", bus), { active: false }, { merge: true });
+      }
+    }
 
-if (existingAdmin.exists() && existingAdmin.data().active) {
-  alert("❌ This bus already has an active admin!");
-  await signOut(auth);
-  return;
-}
+    // ✅ Save admin session in Firestore
+    await setDoc(doc(db, "active_admins", bus), {
+      email: user.email,
+      bus: bus,
+      device: getDeviceName(),
+      loginTime: new Date().toISOString(),
+      active: true
+    });
 
-// ✅ Save admin session records first
-await setDoc(doc(db, "active_admins", bus), {
-  email: user.email,
-  bus: bus,
-  device: getDeviceName(),
-  loginTime: new Date().toISOString(),
-  active: true
-});
+    await setDoc(doc(db, "admins", email), {
+      email: email,
+      bus: bus,
+      device: getDeviceName(),
+      loginTime: new Date().toISOString(),
+      active: true
+    });
 
-await setDoc(doc(db, "admins", email), {
-  email: email,
-  bus: bus,
-  device: getDeviceName(),
-  loginTime: new Date().toISOString(),
-  active: true
-});
+    // ✅ Get first GPS fix and save BEFORE redirecting
+    if (btn) { btn.textContent = "📍 Getting location…"; }
+    try {
+      await startAdminLocationTracking(user.uid, bus);
+    } catch (locErr) {
+      console.warn("⚠️ Could not get GPS fix on login:", locErr);
+      alert("⚠️ Location access failed. Students may not be able to mark attendance until your location is detected. Make sure location permission is granted.");
+    }
 
-// ✅ Get first GPS fix and save to admin_locations BEFORE redirecting
-// (watchPosition keeps running but the page redirect would kill fire-and-forget callbacks)
-if (btn) { btn.textContent = "📍 Getting location…"; }
-try {
-  await startAdminLocationTracking(user.uid, bus);
-} catch (locErr) {
-  // Location failed — warn but still allow login (admin can retry)
-  console.warn("⚠️ Could not get GPS fix on login:", locErr);
-  alert("⚠️ Location access failed. Students may not be able to mark attendance until your location is detected. Make sure location permission is granted.");
-}
+    sessionStorage.setItem("adminBus", bus);
+    localStorage.setItem("lastAdminEmail", email);
+    localStorage.setItem("lastAdminBus", bus);
+    window.location.href = "dashboard.html";
 
-sessionStorage.setItem("adminBus", bus);
-// 💾 Save last login
-localStorage.setItem("lastAdminEmail", email);
-localStorage.setItem("lastAdminBus", bus);
-window.location.href = "dashboard.html";
-
-} catch (err) {
+  } catch (err) {
     console.error("Admin login error:", err.code, err.message);
     const errorMap = {
       "auth/user-not-found":         "❌ No account found with this email.",
@@ -573,17 +535,15 @@ window.location.href = "dashboard.html";
       "auth/network-request-failed": "❌ Network error. Check your connection.",
     };
     alert(errorMap[err.code] || `❌ Login failed: ${err.message}`);
-
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = "Login"; }
   }
-
-
-
 };
 
 // ══════════════════════════════════════════════════════════
-//  DASHBOARD PAGE  —  Admin real-time view (their bus only)
+//  DASHBOARD PAGE  —  Admin real-time view
+//  FIX: Location tracking is RESTARTED here after login redirect
+//  FIX: Session expiry also stops location watcher cleanly
 // ══════════════════════════════════════════════════════════
 let dashboardUnsubscribe = null;
 
@@ -597,59 +557,66 @@ function initDashboard() {
 
     const bus = sessionStorage.getItem("adminBus");
 
-    // ⏰ AUTO LOGOUT AFTER 3 HOURS
-const checkSessionExpiry = async () => {
-  if (!bus) return;
-
-  const adminDoc = await getDoc(doc(db, "active_admins", bus));
-  if (!adminDoc.exists()) return;
-
-  const data = adminDoc.data();
-
-  if (!data.loginTime) return;
-
-  const loginTime = new Date(data.loginTime);
-  const now = new Date();
-
-  const diffHours = (now - loginTime) / (1000 * 60 * 60);
-
-  if (diffHours >= 3) {
-    alert("⏰ Session expired (3 hours)");
-
-    await setDoc(doc(db, "active_admins", bus), {
-      active: false
-    }, { merge: true });
-
-    await signOut(auth);
-    sessionStorage.removeItem("adminBus");
-
-    window.location.href = "admin.html";
-  }
-};
-
-// run immediately
-checkSessionExpiry();
-
-// check every 1 minute
-setInterval(checkSessionExpiry, 60000);
-
     if (!bus) {
       alert("⚠️ No bus selected. Please log in again.");
       window.location.href = "admin.html";
       return;
     }
 
-    
+    // ✅ FIX 1: Restart location tracking on dashboard load
+    // The watchPosition from admin login was killed by the page redirect.
+    // We restart it here so the admin's location keeps updating in Firestore.
+    startAdminLocationTracking(user.uid, bus).catch(err => {
+      console.warn("⚠️ Location tracking failed on dashboard:", err);
+    });
 
+    // ✅ FIX 2: Session expiry — check immediately and every minute
+    const checkSessionExpiry = async () => {
+      if (!bus) return;
+
+      const adminDoc = await getDoc(doc(db, "active_admins", bus));
+      if (!adminDoc.exists()) return;
+
+      const data = adminDoc.data();
+      if (!data.loginTime) return;
+
+      const loginTime  = new Date(data.loginTime);
+      const diffHours  = (new Date() - loginTime) / (1000 * 60 * 60);
+
+      if (diffHours >= 3) {
+        alert("⏰ Your session has expired (3 hours). Please log in again.");
+
+        // Set active: false in Firestore (this is the important part)
+        await setDoc(doc(db, "active_admins", bus), { active: false }, { merge: true });
+
+        // Also clear the admin_locations document
+        await deleteDoc(doc(db, "admin_locations", user.uid));
+
+        // Stop location watcher
+        if (locationWatchId !== null) {
+          navigator.geolocation.clearWatch(locationWatchId);
+          locationWatchId = null;
+        }
+
+        await signOut(auth);
+        sessionStorage.removeItem("adminBus");
+        window.location.href = "admin.html";
+      }
+    };
+
+    checkSessionExpiry();
+    setInterval(checkSessionExpiry, 60000);
+
+    // Show bus name
     const busNameEl = document.getElementById("busNameDisplay");
     if (busNameEl) busNameEl.textContent = `Bus Route : ${BUS_LABELS[bus] || bus}`;
 
-    // Real-time listener — this bus, today only
-const q = query(
-  collection(db, "attendance", getTodayDate(), "records"),
-  where("bus", "==", bus),
-  orderBy("time")
-);
+    // Real-time attendance listener for this bus, today only
+    const q = query(
+      collection(db, "attendance", getTodayDate(), "records"),
+      where("bus", "==", bus),
+      orderBy("time")
+    );
 
     dashboardUnsubscribe = onSnapshot(q, (snapshot) => {
       const tbody = document.getElementById("tableBody");
@@ -681,21 +648,22 @@ const q = query(
 }
 
 window.logout = async function () {
- const bus = sessionStorage.getItem("adminBus");
+  const bus  = sessionStorage.getItem("adminBus");
+  const user = auth.currentUser;
 
-if (bus) {
-  
-await setDoc(doc(db, "active_admins", bus), {
-  active: false
-}, { merge: true });
+  if (bus) {
+    await setDoc(doc(db, "active_admins", bus), { active: false }, { merge: true });
+  }
 
-const user = auth.currentUser;
+  if (user) {
+    await deleteDoc(doc(db, "admin_locations", user.uid));
+  }
 
-if (user) {
-  await deleteDoc(doc(db, "admin_locations", user.uid));
-}
-
-}
+  // Stop location watcher on manual logout too
+  if (locationWatchId !== null) {
+    navigator.geolocation.clearWatch(locationWatchId);
+    locationWatchId = null;
+  }
 
   if (dashboardUnsubscribe) dashboardUnsubscribe();
   try { await signOut(auth); } catch (_) {}
@@ -765,8 +733,6 @@ let managerUnsubscribe = null;
 
 function initManager() {
   onAuthStateChanged(auth, async (user) => {
-
-    // ❌ Not logged in
     if (!user) {
       alert("⚠️ Access denied. Please login.");
       window.location.href = "admin.html";
@@ -774,8 +740,6 @@ function initManager() {
     }
 
     const bus = sessionStorage.getItem("adminBus");
-
-    // ❌ No session bus
     if (!bus) {
       alert("⚠️ Invalid session. Login again.");
       window.location.href = "admin.html";
@@ -783,9 +747,7 @@ function initManager() {
     }
 
     try {
-      // ✅ Check active admin record
       const adminDoc = await getDoc(doc(db, "active_admins", bus));
-
       if (!adminDoc.exists()) {
         alert("⚠️ No active admin found. Login again.");
         window.location.href = "admin.html";
@@ -793,8 +755,6 @@ function initManager() {
       }
 
       const data = adminDoc.data();
-
-      // ❌ Different user trying to access
       if (data.email !== user.email) {
         alert("⛔ Unauthorized access!");
         window.location.href = "admin.html";
@@ -802,7 +762,6 @@ function initManager() {
       }
 
       console.log("✅ Manager access granted");
-
     } catch (err) {
       console.error("Manager auth error:", err);
       alert("❌ Error verifying access.");
