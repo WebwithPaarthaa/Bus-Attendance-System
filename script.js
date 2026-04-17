@@ -656,7 +656,9 @@ window.logout = async function () {
   }
 
   if (user) {
-    await deleteDoc(doc(db, "admin_locations", user.uid));
+    await setDoc(doc(db, "admin_locations", user.uid), {
+  active: false
+}, { merge: true });
   }
 
   // Stop location watcher on manual logout too
