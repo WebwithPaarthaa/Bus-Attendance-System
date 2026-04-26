@@ -90,7 +90,34 @@ function startAdminLocationTracking(userId, bus) {
   });
 }
 
-
+const BUS_LABELS = {
+  bus1:"R-01 Ennore",           bus2:"R-01A Tondiarpet",
+  bus3:"R-01B Kasimedu",        bus4:"R-02 Triplicane",
+  bus5:"R-03 Choolai",          bus6:"R-03A Collector Nagar",
+  bus7:"R-03B Water Tank",      bus8:"R-04 East Mogappair",
+  bus9:"R-05 CIT Nagar",        bus10:"R-05A Loyola College",
+  bus11:"R-06 Chinmayanagar",   bus12:"R-07 Santhome",
+  bus13:"R-08 Kovilambakkam",   bus14:"R-08A Adambakkam",
+  bus15:"R-09 MKB Nagar",       bus16:"R-09A Perambur",
+  bus17:"R-10 Thachoor",        bus18:"R-11 Chengalpattu",
+  bus19:"R-11A Guduvanchery",   bus20:"R-12 Minjur",
+  bus21:"R-13 Vyasarpadi",      bus22:"R-13A ICF",
+  bus23:"R-14 Thiruvallur",     bus24:"R-14A Kakkalur",
+  bus25:"R-15 Kancheepuram",    bus26:"R-15A Orikkai",
+  bus27:"R-16 Neelangkarai",    bus28:"R-16A Guindy",
+  bus29:"R-16B Sholinganallur", bus30:"R-17 Valluvarkottam",
+  bus31:"R-17A Valasaravakkam", bus32:"R-18 Pallikaranai",
+  bus33:"R-18A Sembakkam",      bus34:"R-18B Kelambakkam",
+  bus35:"R-19 Poombukar",       bus36:"R-19A Vinayagapuram",
+  bus37:"R-20 Vepampattu",      bus38:"R-21 Ayyapakkam",
+  bus39:"R-22 Thiruthani",      bus40:"R-22A SR Gate",
+  bus41:"R-23 K4 Police Stn",   bus42:"R-24 Arcot",
+  bus43:"R-25 Kallikuppam",     bus44:"R-25A Pudur",
+  bus45:"R-26 Andarkuppam",     bus46:"R-27 Avadi",
+  bus47:"R-27A Kollumedu",      bus48:"R-28 Agaram",
+  bus49:"R-29 Velachery",       bus50:"R-29A Pammal",
+  bus51:"R-29B Sivanthangalllll",
+};
 
 function getTodayDate() {
   const d = new Date();
