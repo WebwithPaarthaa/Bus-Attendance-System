@@ -1,7 +1,3 @@
-// ══════════════════════════════════════════════════════════
-//  RIT BUS-ATTENDANCE SYSTEM  —  script.js
-//  Database : Firebase Firestore
-// ══════════════════════════════════════════════════════════
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
@@ -26,7 +22,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 
-// ── Firebase config ────────────────────────────────────────
+
 const firebaseConfig = {
   apiKey: "AIzaSyC0x99UpF3d-veVnZdDvTugjhP0Q7FeDus",
   authDomain: "rit-bus-attendance.firebaseapp.com",
@@ -40,13 +36,8 @@ const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
 
-// ══════════════════════════════════════════════════════════
-//  📍 ADMIN LOCATION TRACKING
-//  - Starts watchPosition and saves every GPS update to Firestore
-//  - Returns a Promise that resolves after the FIRST fix is saved
-//  - Also returns the watchId so the caller can stop it if needed
-// ══════════════════════════════════════════════════════════
-let locationWatchId = null; // global so we can stop the old watcher before starting a new one
+
+let locationWatchId = null; 
 
 function startAdminLocationTracking(userId, bus) {
   return new Promise((resolve, reject) => {
@@ -55,7 +46,7 @@ function startAdminLocationTracking(userId, bus) {
       return reject(new Error("Geolocation not supported"));
     }
 
-    // Stop any existing watcher before starting a new one (prevents duplicates)
+
     if (locationWatchId !== null) {
       navigator.geolocation.clearWatch(locationWatchId);
       locationWatchId = null;
@@ -100,41 +91,6 @@ function startAdminLocationTracking(userId, bus) {
 }
 
 
-// ══════════════════════════════════════════════════════════
-//  BUS LABEL MAP
-// ══════════════════════════════════════════════════════════
-const BUS_LABELS = {
-  bus1:"R-01 Ennore",           bus2:"R-01A Tondiarpet",
-  bus3:"R-01B Kasimedu",        bus4:"R-02 Triplicane",
-  bus5:"R-03 Choolai",          bus6:"R-03A Collector Nagar",
-  bus7:"R-03B Water Tank",      bus8:"R-04 East Mogappair",
-  bus9:"R-05 CIT Nagar",        bus10:"R-05A Loyola College",
-  bus11:"R-06 Chinmayanagar",   bus12:"R-07 Santhome",
-  bus13:"R-08 Kovilambakkam",   bus14:"R-08A Adambakkam",
-  bus15:"R-09 MKB Nagar",       bus16:"R-09A Perambur",
-  bus17:"R-10 Thachoor",        bus18:"R-11 Chengalpattu",
-  bus19:"R-11A Guduvanchery",   bus20:"R-12 Minjur",
-  bus21:"R-13 Vyasarpadi",      bus22:"R-13A ICF",
-  bus23:"R-14 Thiruvallur",     bus24:"R-14A Kakkalur",
-  bus25:"R-15 Kancheepuram",    bus26:"R-15A Orikkai",
-  bus27:"R-16 Neelangkarai",    bus28:"R-16A Guindy",
-  bus29:"R-16B Sholinganallur", bus30:"R-17 Valluvarkottam",
-  bus31:"R-17A Valasaravakkam", bus32:"R-18 Pallikaranai",
-  bus33:"R-18A Sembakkam",      bus34:"R-18B Kelambakkam",
-  bus35:"R-19 Poombukar",       bus36:"R-19A Vinayagapuram",
-  bus37:"R-20 Vepampattu",      bus38:"R-21 Ayyapakkam",
-  bus39:"R-22 Thiruthani",      bus40:"R-22A SR Gate",
-  bus41:"R-23 K4 Police Stn",   bus42:"R-24 Arcot",
-  bus43:"R-25 Kallikuppam",     bus44:"R-25A Pudur",
-  bus45:"R-26 Andarkuppam",     bus46:"R-27 Avadi",
-  bus47:"R-27A Kollumedu",      bus48:"R-28 Agaram",
-  bus49:"R-29 Velachery",       bus50:"R-29A Pammal",
-  bus51:"R-29B Sivanthangalllll",
-};
-
-// ══════════════════════════════════════════════════════════
-//  UTILITY HELPERS
-// ══════════════════════════════════════════════════════════
 
 function getTodayDate() {
   const d = new Date();
@@ -189,9 +145,7 @@ function triggerDownload(filename, mimeType, content) {
   URL.revokeObjectURL(url);
 }
 
-// ══════════════════════════════════════════════════════════
-//  PAGE DETECTION
-// ══════════════════════════════════════════════════════════
+
 const PAGE = (() => {
   const p = location.pathname.split("/").pop() || "index.html";
   if (p === "" || p === "index.html")  return "index";
@@ -203,9 +157,7 @@ const PAGE = (() => {
   return "unknown";
 })();
 
-// ══════════════════════════════════════════════════════════
-//  BOOT
-// ══════════════════════════════════════════════════════════
+
 document.addEventListener("DOMContentLoaded", () => {
   startLiveClock();
   populateBusSelects();
@@ -219,23 +171,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ══════════════════════════════════════════════════════════
-//  INDEX PAGE
-// ══════════════════════════════════════════════════════════
+
 function initIndex() {
-  // Static page — navigation handled by <a> links
+
 }
 
-// ══════════════════════════════════════════════════════════
-//  STUDENT PAGE  —  Mark attendance
-// ══════════════════════════════════════════════════════════
+
 function initStudent() {
   const form = document.getElementById("studentForm");
 
-  // 🔒 CHECK DEVICE LOCK (3 hours)
+
   const lockTime = localStorage.getItem("attendanceLock");
 
-  // 🔄 Auto-fill student details
+ 
   const savedName  = localStorage.getItem("studentName");
   const savedReg   = localStorage.getItem("studentReg");
   const savedDept  = localStorage.getItem("studentDept");
@@ -250,8 +198,8 @@ function initStudent() {
 
   if (lockTime) {
     const diffHours = (Date.now() - parseInt(lockTime)) / (1000 * 60 * 60);
-    if (diffHours < 3) {
-      alert("⛔ You have already marked attendance. Try again after 3 hours.");
+    if (diffHours < 2) {
+      alert("⛔ You have already marked attendance. Try again after 2 hours.");
       window.location.href = "index.html";
       return;
     } else {
@@ -301,7 +249,7 @@ function initStudent() {
     const todayDate = getTodayDate();
 
     try {
-      // Cross-bus duplicate check
+    
       const dupQuery = query(
         collection(db, "attendance", todayDate, "records"),
         where("regno", "==", regno),
@@ -320,8 +268,7 @@ function initStudent() {
           const studentLng = pos.coords.longitude;
           console.log("📍 Student Location:", studentLat, studentLng);
 
-          // --- FIX: Check admin session expiry using loginTime FIRST ---
-          // This works even if the admin closed their browser/tab
+
           const adminDoc = await getDoc(doc(db, "active_admins", bus));
 
           if (!adminDoc.exists()) {
@@ -334,7 +281,7 @@ function initStudent() {
           const loginTime = new Date(adminData.loginTime);
           const diffHours = (new Date() - loginTime) / (1000 * 60 * 60);
 
-          // If 3 hours have passed OR active was already set to false → expire it now
+          
           if (diffHours >= 3 || !adminData.active) {
             await setDoc(doc(db, "active_admins", bus), { active: false }, { merge: true });
             alert("❌ Admin session expired. Bus attendance is closed.");
@@ -342,7 +289,7 @@ function initStudent() {
             return;
           }
 
-          // --- Now check location ---
+    
           const locQuery = query(
             collection(db, "admin_locations"),
             where("bus", "==", bus)
@@ -366,7 +313,7 @@ function initStudent() {
           console.log("🚌 Admin Location:", admin.lat, admin.lng);
           console.log("⏱ Last Updated:", admin.updatedAt);
 
-          // Check location freshness
+         
           const lastUpdate  = new Date(admin.updatedAt);
           const diffMinutes = (new Date() - lastUpdate) / (1000 * 60);
 
@@ -385,7 +332,7 @@ function initStudent() {
             return;
           }
 
-          // ✅ SAVE ATTENDANCE
+
           await setDoc(doc(db, "attendance", todayDate, "records", regno), {
             name,
             regno,
@@ -401,14 +348,14 @@ function initStudent() {
 
           alert("✅ Attendance marked successfully!");
 
-          // 💾 Save student details for next time
+       
           localStorage.setItem("studentName", name);
           localStorage.setItem("studentReg",  regno);
           localStorage.setItem("studentDept", dept);
           localStorage.setItem("studentBus",  bus);
           localStorage.setItem("studentStop", stop);
 
-          // 🔒 Store lock time
+      
           localStorage.setItem("attendanceLock", Date.now());
 
           window.location.href = "index.html";
@@ -426,9 +373,7 @@ function initStudent() {
   });
 }
 
-// ══════════════════════════════════════════════════════════
-//  ADMIN PAGE  —  Firebase Auth login
-// ══════════════════════════════════════════════════════════
+
 function initAdmin() {
   onAuthStateChanged(auth, (user) => {
     if (user && sessionStorage.getItem("adminBus")) {
@@ -436,7 +381,7 @@ function initAdmin() {
     }
   });
 
-  // 🔄 Auto-fill last login
+
   const savedEmail = localStorage.getItem("lastAdminEmail");
   const savedBus   = localStorage.getItem("lastAdminBus");
 
@@ -475,25 +420,25 @@ window.adminLogin = async function () {
     const userCredential = await signInWithEmailAndPassword(auth, email, pass);
     const user = userCredential.user;
 
-    // ✅ Check if bus already has an active admin whose session has NOT expired
+    
     const existingAdmin = await getDoc(doc(db, "active_admins", bus));
     if (existingAdmin.exists() && existingAdmin.data().active) {
       const existingLoginTime = new Date(existingAdmin.data().loginTime);
       const existingDiffHours = (new Date() - existingLoginTime) / (1000 * 60 * 60);
 
       if (existingDiffHours < 3) {
-        // Truly still active
+     
         alert("❌ This bus already has an active admin session!");
         await signOut(auth);
         if (btn) { btn.disabled = false; btn.textContent = "Login"; }
         return;
       } else {
-        // Old session expired — auto-clear it so this admin can take over
+       
         await setDoc(doc(db, "active_admins", bus), { active: false }, { merge: true });
       }
     }
 
-    // ✅ Save admin session in Firestore
+
     await setDoc(doc(db, "active_admins", bus), {
       email: user.email,
       bus: bus,
@@ -510,7 +455,6 @@ window.adminLogin = async function () {
       active: true
     });
 
-    // ✅ Get first GPS fix and save BEFORE redirecting
     if (btn) { btn.textContent = "📍 Getting location…"; }
     try {
       await startAdminLocationTracking(user.uid, bus);
@@ -540,11 +484,7 @@ window.adminLogin = async function () {
   }
 };
 
-// ══════════════════════════════════════════════════════════
-//  DASHBOARD PAGE  —  Admin real-time view
-//  FIX: Location tracking is RESTARTED here after login redirect
-//  FIX: Session expiry also stops location watcher cleanly
-// ══════════════════════════════════════════════════════════
+
 let dashboardUnsubscribe = null;
 
 function initDashboard() {
@@ -563,14 +503,12 @@ function initDashboard() {
       return;
     }
 
-    // ✅ FIX 1: Restart location tracking on dashboard load
-    // The watchPosition from admin login was killed by the page redirect.
-    // We restart it here so the admin's location keeps updating in Firestore.
+    
     startAdminLocationTracking(user.uid, bus).catch(err => {
       console.warn("⚠️ Location tracking failed on dashboard:", err);
     });
 
-    // ✅ FIX 2: Session expiry — check immediately and every minute
+
     const checkSessionExpiry = async () => {
       if (!bus) return;
 
@@ -586,13 +524,13 @@ function initDashboard() {
       if (diffHours >= 3) {
         alert("⏰ Your session has expired (3 hours). Please log in again.");
 
-        // Set active: false in Firestore (this is the important part)
+      
         await setDoc(doc(db, "active_admins", bus), { active: false }, { merge: true });
 
-        // Also clear the admin_locations document
+        
         await deleteDoc(doc(db, "admin_locations", user.uid));
 
-        // Stop location watcher
+      
         if (locationWatchId !== null) {
           navigator.geolocation.clearWatch(locationWatchId);
           locationWatchId = null;
@@ -607,11 +545,11 @@ function initDashboard() {
     checkSessionExpiry();
     setInterval(checkSessionExpiry, 60000);
 
-    // Show bus name
+   
     const busNameEl = document.getElementById("busNameDisplay");
     if (busNameEl) busNameEl.textContent = `Bus Route : ${BUS_LABELS[bus] || bus}`;
 
-    // Real-time attendance listener for this bus, today only
+    
     const q = query(
       collection(db, "attendance", getTodayDate(), "records"),
       where("bus", "==", bus),
@@ -661,7 +599,7 @@ window.logout = async function () {
 }, { merge: true });
   }
 
-  // Stop location watcher on manual logout too
+  
   if (locationWatchId !== null) {
     navigator.geolocation.clearWatch(locationWatchId);
     locationWatchId = null;
@@ -674,7 +612,7 @@ window.logout = async function () {
   window.location.href = "index.html";
 };
 
-// ── Dashboard download helpers ────────────────────────────
+
 
 function getDashboardRows() {
   const rows = document.querySelectorAll("#tableBody tr");
@@ -728,9 +666,7 @@ window.downloadPDF = function () {
 
 window.printTable = function () { window.print(); };
 
-// ══════════════════════════════════════════════════════════
-//  MANAGER PAGE  —  Bus-wise attendance (real-time)
-// ══════════════════════════════════════════════════════════
+
 let managerUnsubscribe = null;
 
 function initManager() {
@@ -866,9 +802,7 @@ window.downloadManagerPDF = function () {
   doc.save(`manager_${label}_${getTodayDate().replace(/\//g,"-")}.pdf`);
 };
 
-// ══════════════════════════════════════════════════════════
-//  MAIN DASHBOARD  —  All buses combined overview
-// ══════════════════════════════════════════════════════════
+
 function initMainDashboard() {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
