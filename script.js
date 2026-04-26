@@ -116,7 +116,7 @@ const BUS_LABELS = {
   bus45:"R-26 Andarkuppam",     bus46:"R-27 Avadi",
   bus47:"R-27A Kollumedu",      bus48:"R-28 Agaram",
   bus49:"R-29 Velachery",       bus50:"R-29A Pammal",
-  bus51:"R-29B Sivanthangalllll",
+  bus51:"R-29B Sivanthangal",
 };
 
 function getTodayDate() {
